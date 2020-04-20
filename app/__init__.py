@@ -1,9 +1,11 @@
 from flask import Flask
 from config import Config
 from flask_bootstrap import Bootstrap
+from flask_talisman import Talisman
 app = Flask(__name__)
 app.config.from_object(Config)
 bootstrap = Bootstrap(app)
+Talisman(app)
 from app import routes
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
