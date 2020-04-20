@@ -1,1 +1,1 @@
-web: gunicorn glycomass:appgoo
+web: gunicorn glycomass:app
