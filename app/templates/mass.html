@@ -6,7 +6,14 @@
 
     {{ wtf.quick_form(form) }}
 
-    <h3><p>Result:<p>
-   <p> {{ result }}</h3></p>
+    <h3>
+        <p> Monoisotopic Mass: {{monomz}} m/z </p>
+        <p> Most Abundant Mass: {{mostab}} m/z </h3></p>
+
+
+
+    {% if plot_url != None %}
+        <img style="height:400px", width="640x" src="data:image/png;base64, {{ plot_url }}">
+    {% endif %}
     </div>
 {% endblock %}

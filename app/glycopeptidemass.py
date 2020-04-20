@@ -2,6 +2,11 @@
 def masscalc(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	import matplotlib.pyplot as plt
 	import numpy as np
+	import io
+	import base64
+
+	from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+	from matplotlib.figure import Figure
 
 	from brainpy import isotopic_variants
 
@@ -72,7 +77,7 @@ def masscalc(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 
 	z = Z.tolist()
 	z = z[0]
-	#print ('composition =', 'C',z[0], 'H',z[1], 'N',z[2], 'O',z[3], 'S',z[4] )
+	#composition =str( 'C',z[0], 'H',z[1], 'N',z[2], 'O',z[3], 'S',z[4] )
 
 
 
@@ -103,15 +108,19 @@ def masscalc(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	intensity = (intensity / intensity.max()) * 100
 
 	# draw the profile
-
-
+	plt.figure()
 	plt.xlabel("m/z")
-	plt.ylabel("Relative intensity")
+	plt.ylabel("Relative Intensity")
 	plt.plot(grid, intensity)
+	from io import BytesIO
+	img = BytesIO()
+	plt.savefig(img, format='png')
+	img.seek(0)
+	plot_url = base64.b64encode(img.getvalue()).decode()
 
 	mono = theoretical_isotopic_cluster[0]
 	mostabundant = grid[np.where(intensity == max(intensity))]
 	monomz=mono.mz
 	mostab=mostabundant[0]
 
-	return 'Monoisotopic Mass: {:.4f} m/z and \nMost Abundant Mass: {:.4f} m/z '.format(monomz, mostab)
+	return '{:.4f},{:.4f},{}'.format(monomz, mostab, plot_url)
