@@ -1,0 +1,40 @@
+
+
+    <h1>Mass Calculation</h1>
+    <div class="row">
+        <div class="col-md-4">
+              {{ wtf.quick_form(form) }}
+        </div>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.Peptide.label }}<br>
+            {{ form.Peptide(size=32) }}
+        </p>
+        <p>
+            {{ form.Hex.label }}<br>
+            {{ form.Hex(size=32) }}
+        </p>
+        <p>
+            {{ form.HexNAc.label }}<br>
+            {{ form.HexNAc(size=32) }}
+        </p>
+        <p>
+            {{ form.Fuc.label }}<br>
+            {{ form.Fuc(size=32) }}
+        </p>
+        <p>
+            {{ form.Sia.label }}<br>
+            {{ form.Sia(size=32) }}
+        </p>
+        <p>
+            {{ form.Charge.label }}<br>
+            {{ form.Charge(size=32) }}
+        </p>
+        <p>
+            {{ form.Deamidation.label }}<br>
+            {{ form.Deamidation(size=32) }}
+        </p>
+        <p>{{ form.Carbamido() }} {{ form.Carbamido.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>

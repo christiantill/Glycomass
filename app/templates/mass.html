@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+<div class="container">
+  <h4>Calculate your Glycopeptide Mass</h4>
+
+    {{ wtf.quick_form(form) }}
+
+    <h3><p>Result:<p>
+   <p> {{ result }}</h3></p>
+    </div>
+{% endblock %}
