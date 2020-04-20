@@ -1,1 +1,1 @@
-web: flask db upgrade; flask translate compile; gunicorn glycomassheroku config:set FLASK_APP=microblog.py:app
+web: gunicorn glycomass:app
