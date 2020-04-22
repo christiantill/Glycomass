@@ -4,25 +4,25 @@ from wtforms.validators import DataRequired, Length
 
 
 class PeptideForm(FlaskForm):
-    Peptide = StringField('Peptide', validators=[DataRequired(),Length(max=100)])
-    Hex = FloatField('Hex', validators= None,default=0)
-    HexNAc = FloatField('HexNac', validators= None,default=0)
-    Fuc = FloatField('Fuc', validators= None,default=0)
-    Sia = FloatField('Sia', validators= None,default=0)
+    Peptide = StringField('Peptide sequence', validators=[DataRequired(),Length(max=100)])
+    Hex = FloatField('Hexose', validators= None,default=0)
+    HexNAc = FloatField('N-acetylhexosamine', validators= None,default=0)
+    Fuc = FloatField('Fucose', validators= None,default=0)
+    Sia = FloatField('Sialic acid', validators= None,default=0)
     Charge = FloatField('Charge', validators=None,default=0)
     Deamidation = FloatField('Deamidation', validators= None,default=0)
-    Carbamido = BooleanField('Carbamido')
+    Carbamido = BooleanField('Carbamidomethylation')
     submit_pep = SubmitField('Calculate')
 
 class ProteinForm(FlaskForm):
-    Peptide= StringField('Proteinsequence', validators=[DataRequired()])
-    Hex = FloatField('Hex', validators= None,default=0)
-    HexNAc = FloatField('HexNac', validators= None,default=0)
-    Fuc = FloatField('Fuc', validators= None,default=0)
-    Sia = FloatField('Sia', validators= None,default=0)
+    Peptide= StringField('Protein sequence', validators=[DataRequired()])
+    Hex = FloatField('Hexose', validators= None,default=0)
+    HexNAc = FloatField('N-acetylhexosamine', validators= None,default=0)
+    Fuc = FloatField('Fucose', validators= None,default=0)
+    Sia = FloatField('Sialic acid', validators= None,default=0)
     Charge = FloatField('Charge', validators=None,default=0)
     Deamidation = FloatField('Deamidation', validators= None,default=0)
-    Disulfidebridges = FloatField('Disulfidebridges', validators= None,default=0)
+    Disulfidebridges = FloatField('Disulfide bridges', validators= None,default=0)
     Resolution = RadioField("Resolution",validators=[DataRequired()], choices= [("low","low resolution"),("medium","medium resolution"),("super high","super high resolution")])
     submit = SubmitField('Calculate')
 
