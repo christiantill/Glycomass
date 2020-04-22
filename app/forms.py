@@ -15,11 +15,11 @@ class PeptideForm(FlaskForm):
     submit_pep = SubmitField('Calculate')
 
 class ProteinForm(FlaskForm):
-    Peptide= StringField('Protein sequence', validators=[DataRequired()])
-    Hex = FloatField('Hexose', validators= None,default=0)
-    HexNAc = FloatField('N-acetylhexosamine', validators= None,default=0)
-    Fuc = FloatField('Fucose', validators= None,default=0)
-    Sia = FloatField('Sialic acid', validators= None,default=0)
+    Peptide= StringField('Protein sequence', validators=[DataRequired(),Length(max=100000)])
+    Hex = FloatField('Hexose', validators= validators= [NumberRange(max=100)],default=0)
+    HexNAc = FloatField('N-acetylhexosamine', validators= [NumberRange(max=100)],default=0)
+    Fuc = FloatField('Fucose', validators= [NumberRange(max=100)],default=0)
+    Sia = FloatField('Sialic acid', validators= [NumberRange(max=100)],default=0)
     Charge = FloatField('Charge', validators=None,default=0)
     Deamidation = FloatField('Deamidation', validators= None,default=0)
     Disulfidebridges = FloatField('Disulfide bridges', validators= None,default=0)
