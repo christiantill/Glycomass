@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
-import numpy as np
-import base64
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-from brainpy import isotopic_variants
 def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
+	import matplotlib.pyplot as plt
+	import numpy as np
+	import base64
 
+	from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+	from matplotlib.figure import Figure
+
+	from brainpy import isotopic_variants
 	Peptide = Peptide.upper()
 	countA = Peptide.count('A')
 	countR = Peptide.count('R')
@@ -123,7 +123,14 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 
 
 def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,resolution):
+	import matplotlib.pyplot as plt
+	import numpy as np
+	import base64
 
+	from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+	from matplotlib.figure import Figure
+
+	from brainpy import isotopic_variants
 	Peptide = Peptide.upper()
 
 	countA = Peptide.count('A')
