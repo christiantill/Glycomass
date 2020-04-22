@@ -4,11 +4,8 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	import matplotlib.pyplot as plt
 	import numpy as np
 	import base64
-
-	from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-	from matplotlib.figure import Figure
-
 	from brainpy import isotopic_variants
+
 	Peptide = Peptide.upper()
 	countA = Peptide.count('A')
 	countR = Peptide.count('R')
@@ -126,11 +123,8 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	import matplotlib.pyplot as plt
 	import numpy as np
 	import base64
-
-	from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-	from matplotlib.figure import Figure
-
 	from brainpy import isotopic_variants
+
 	Peptide = Peptide.upper()
 
 	countA = Peptide.count('A')
@@ -204,7 +198,7 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	z = z[0]
 	print('composition =', 'C', z[0], 'H', z[1], 'N', z[2], 'O', z[3], 'S', z[4])
 
-	from brainpy import isotopic_variants
+
 
 	AC = Z[0][0]
 	AH = Z[0][1]
@@ -259,3 +253,104 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	mostab = mostabundant[0]
 
 	return '{:.4f},{:.4f},{}'.format(monomz, mostab, plot_url)
+
+
+def glycanmass (Hex,HexNAc,Fuc, Sia, Charge, Sodium, Modification):
+	import matplotlib.pyplot as plt
+	import numpy as np
+	import base64
+	from brainpy import isotopic_variants
+
+
+
+	if (Sodium == True and Charge <= 0):
+		print('It is unlikely to see sodium adducts in negative ion mode.')
+	else:
+			H2O = [[0, 2, 0, 1, 0]]
+			H2 = [[0, 2, 0, 0, 0]]
+			He = [[6, 10, 0, 5, 0]]
+			Na = [[8, 13, 1, 5, 0]]
+			Fu = [[6, 10, 0, 4, 0]]
+			Si = [[11, 17, 1, 8, 0]]
+
+			if (Modification == "Permethyl"):
+				He = [[9, 16, 0, 5, 0]]
+				Na = [[11, 19, 1, 5, 0]]
+				Fu = [[8, 14, 0, 4, 0]]
+				Si = [[16, 27, 1, 8, 0]]
+				Add = [[2, 4, 0, 0, 0]]  # add two additional modifications
+
+			if (Modification == "Peracetly"):
+				He = [[12, 16, 0, 8, 0]]
+				Na = [[12, 17, 1, 7, 0]]
+				Fu = [[10, 14, 0, 6, 0]]
+				Si = [[17, 23, 1, 11, 0]]
+				Add = [[4, 4, 0, 2, 0]]  # add two additional modifications
+
+			Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
+
+			if (Modification == "Permethyl"):
+				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
+
+			if (Modification == "Peracetly"):
+				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
+			if (Modification == "ReducedEnd"):
+				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + H2
+
+			if (Modification == "Label_2AB"):
+				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [
+					[7, 8, 2, 0, 0]]
+
+			z = Z.tolist()
+			z = z[0]
+			print('composition =', 'C', z[0], 'H', z[1], 'N', z[2], 'O', z[3], 'S', z[4])
+
+
+			AC = Z[0][0]
+			AH = Z[0][1]
+			AN = Z[0][2]
+			AO = Z[0][3]
+			AS = Z[0][4]
+
+			peptide = {'H': AH, 'C': AC, 'O': AO, 'N': AN, 'S': AS}
+			theoretical_isotopic_cluster = isotopic_variants(peptide, npeaks=10, charge=Charge)
+			for peak in theoretical_isotopic_cluster:
+				"""print(peak.mz, peak.intensity)"""
+
+			# produce a theoretical profile using a gaussian peak shape
+
+			grid = np.arange(theoretical_isotopic_cluster[0].mz - 1,
+							 theoretical_isotopic_cluster[-1].mz + 1, 0.0005)
+
+			intensity = np.zeros_like(grid)
+			sigma = 0.0005
+			for i, mz in enumerate(grid):
+				for peak in theoretical_isotopic_cluster:
+					intensity[i] += peak.intensity * np.exp(-(mz - peak.mz) ** 2 / (2 * sigma)
+															) / (np.sqrt(2 * np.pi) * sigma)
+
+			# intensity = (intensity / intensity.max()) * 100
+
+			# draw the profile
+			if (Sodium == True):
+				grid = grid + (22.989770 / Charge) - (1 / Charge)
+			mono = theoretical_isotopic_cluster[0]
+			if (Sodium == True):
+
+				mono.mz = mono.mz + (22.989770 / Charge) - (1 / Charge)
+
+			plt.figure()
+			plt.xlabel("m/z")
+			plt.ylabel("Relative Intensity")
+			plt.plot(grid, intensity)
+			from io import BytesIO
+			img = BytesIO()
+			plt.savefig(img, format='png')
+			img.seek(0)
+			plot_url = base64.b64encode(img.getvalue()).decode()
+
+			mostabundant = grid[np.where(intensity == max(intensity))]
+			monomz = mono.mz
+			mostab = mostabundant[0]
+
+			return '{:.4f},{:.4f},{}'.format(monomz, mostab, plot_url)

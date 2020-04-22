@@ -27,12 +27,11 @@ class ProteinForm(FlaskForm):
     submit = SubmitField('Calculate')
 
 class GlycanForm(FlaskForm):
-    Protein = StringField('Proteinsequence', validators=[DataRequired()])
-    Hex = FloatField('Hex', validators= None,default=0)
-    HexNAc = FloatField('HexNac', validators= None,default=0)
-    Fuc = FloatField('Fuc', validators= None,default=0)
-    Sia = FloatField('Sia', validators= None,default=0)
+    Hex = FloatField('Hexose', validators= None,default=0)
+    HexNAc = FloatField('N-acetylhexosamine', validators= None,default=0)
+    Fuc = FloatField('Fucose', validators= None,default=0)
+    Sia = FloatField('Sialic acid', validators= None,default=0)
     Charge = FloatField('Charge', validators=None,default=0)
-    Deamidation = FloatField('Deamidation', validators= None,default=0)
-    Resolution = RadioField("Resolution",validators=[DataRequired()], choices= [("low","5 res"),("medium","10res"),("high res","100 res")])
+    Sodium = BooleanField('Sodium adduct', validators= None,default=0)
+    Modification = RadioField("Modification",validators=[DataRequired()], choices= [("None","No modification"),("Permethyl","Permethylation"),("Peracetly","Peracetylation"),("Label_2AB","2AB-Label"),("ReducedEnd","Reduced end")])
     submit = SubmitField('Calculate')

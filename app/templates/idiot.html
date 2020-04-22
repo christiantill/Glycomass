@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block content %}
+    <div class="container">
+    <h1>It is unlikely to see sodium adducts in negative ion mode.</h1>
+    <p><a href="{{ url_for('glycan_calculate') }}">Back</a></p>
+    </div>
+{% endblock %}
