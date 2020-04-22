@@ -23,7 +23,7 @@ class ProteinForm(FlaskForm):
     Charge = FloatField('Charge', validators=None,default=0)
     Deamidation = FloatField('Deamidation', validators= None,default=0)
     Disulfidebridges = FloatField('Disulfidebridges', validators= None,default=0)
-    Resolution = RadioField("Resolution",validators=[DataRequired()], choices= [("low","sigma = 0.05"),("medium","sigma = 0.003"),("super high","sigma = 0.001")])
+    Resolution = RadioField("Resolution",validators=[DataRequired()], choices= [("low","low"),("medium","medium"),("super high","super high")])
     submit = SubmitField('Calculate')
 
 class GlycanForm(FlaskForm):
