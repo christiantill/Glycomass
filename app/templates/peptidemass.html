@@ -4,7 +4,7 @@
 <div class="container">
   <h4>Calculate your Glycopeptide Mass</h4>
 
-   {{ wtf.quick_form(form) }}
+    {{ wtf.quick_form(form) }}
     {% if monomz is defined %}
     <div>
 
@@ -12,9 +12,6 @@
         <p> Monoisotopic Mass: {{monomz}} m/z </p>
         <p> Most Abundant Mass: {{mostab}} m/z </p>
         <p> Composition: {{composition}}</p></h3>
-
-
-
         <img style="height:400px", width="640x" src="data:image/png;base64, {{ plot_url }}">
         {% else %}
         {{ super() }}
