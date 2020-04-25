@@ -5,16 +5,18 @@
   <h4>Calculate your Glycan Mass</h4>
 
     {{ wtf.quick_form(form) }}
-    {% if monomz is defined %}
+    {% if negative_ion is defined %}
+    <h2>It is unlikely to see sodium adducts in negative ion mode.</h2>
 
+    {% elif monomz is defined %}
 
-    <h3>
-        <p> Monoisotopic Mass: {{monomz}} m/z </p>
-        <p> Most Abundant Mass: {{mostab}} m/z </p>
-        <p> Composition: {{composition}}</p></h3>
+        <h3>
+            <p> Monoisotopic Mass: {{monomz}} m/z </p>
+            <p> Most Abundant Mass: {{mostab}} m/z </p>
+            <p> Composition: {{composition}}</p></h3>
 
-    <img class="img-fluid" alt="Responsive image" src="data:image/png;base64, {{ plot_url }}">
-        {% else %}
+        <img class="img-fluid" alt="Responsive image" src="data:image/png;base64, {{ plot_url }}">
+    {% else %}
         {{ super() }}
 
     {% endif %}

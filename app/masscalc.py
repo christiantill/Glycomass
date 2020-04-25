@@ -70,6 +70,7 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 
 	z = Z.tolist()
 	z = z[0]
+
 	composition ='C'+str(z[0])+ ' H'+str(z[1])+' N'+str(z[2])+' O'+str(z[3])+' S'+str(z[4])
 
 	AC = Z[0][0]
@@ -111,10 +112,10 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 
 	mono = theoretical_isotopic_cluster[0]
 	mostabundant = grid[np.where(intensity == max(intensity))]
-	monomz=mono.mz
-	mostab=mostabundant[0]
+	monomz = mono.mz
+	mostab = mostabundant[0]
 
-	return '{:.4f},{:.4f},{}, {}'.format(monomz, mostab, plot_url,composition)
+	return '{:.4f},{:.4f},{},{}'.format(monomz, mostab, plot_url, composition)
 
 
 def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,resolution):
@@ -197,8 +198,6 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	composition ='C'+str(z[0])+ ' H'+str(z[1])+' N'+str(z[2])+' O'+str(z[3])+' S'+str(z[4])
 
 
-
-
 	AC = Z[0][0]
 	AH = Z[0][1]
 	AN = Z[0][2]
@@ -251,7 +250,8 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	monomz = mono.mz
 	mostab = mostabundant[0]
 
-	return '{:.4f},{:.4f},{}, {}'.format(monomz, mostab, plot_url,composition)
+	return f'{monomz:.4f},{mostab:.4f},{plot_url},{composition}'
+
 
 
 def glycanmass (Hex,HexNAc,Fuc, Sia, Charge, Sodium, Modification):
@@ -352,4 +352,4 @@ def glycanmass (Hex,HexNAc,Fuc, Sia, Charge, Sodium, Modification):
 			monomz = mono.mz
 			mostab = mostabundant[0]
 
-			return '{:.4f},{:.4f},{}, {}'.format(monomz, mostab, plot_url,composition)
+			return '{:.4f},{:.4f},{},{}'.format(monomz, mostab, plot_url, composition)

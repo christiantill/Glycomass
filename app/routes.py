@@ -75,7 +75,8 @@ def glycan_calculate():
         Modification = form.Modification.data
         Sodium = form.Sodium.data
         if (Sodium == True and Charge <= 0):
-            return render_template('idiot.html')
+            negative_ion = True
+            return render_template('glycan.html', title='Mass Calculation', form=form, negative_ion = negative_ion)
         else:
             result = glycanmass(Hex, HexNac, Fuc, Sia, Charge, Sodium, Modification)
             data = result.split(",")
