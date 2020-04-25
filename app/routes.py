@@ -56,9 +56,12 @@ def protein_calculate():
         mostab=data[1]
         plot_url=data[2]
         composition = data[3]
-
-        return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab,
-                           plot_url=plot_url, composition=composition)
+        countC = Peptide.count('C')
+        if (countC < (Disulfidebridges * 2)):
+            cystein_residues = True
+            return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab, plot_url=plot_url, composition=composition, cystein_residues= cystein_residues)
+        else:
+            return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab, plot_url=plot_url, composition=composition)
 
 
     return render_template('proteinmass.html', title='Mass Calculation', form=form )

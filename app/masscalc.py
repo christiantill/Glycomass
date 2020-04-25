@@ -249,6 +249,7 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	mostabundant = grid[np.where(intensity == max(intensity))]
 	monomz = mono.mz
 	mostab = mostabundant[0]
+	print(monomz,mostab)
 
 	return f'{monomz:.4f},{mostab:.4f},{plot_url},{composition}'
 

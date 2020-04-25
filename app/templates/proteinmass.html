@@ -6,14 +6,15 @@
 
     {{ wtf.quick_form(form) }}
     {% if monomz is defined %}
-
-
-        <h3>
+         <h3>
             <p> Monoisotopic Mass: {{monomz}} m/z </p>
             <p> Most Abundant Mass: {{mostab}} m/z </p>
             <p> Composition: {{composition}}</p></h3>
-        <img class="img-fluid" alt="Responsive image" src="data:image/png;base64, {{ plot_url }}">
-        {% else %}
+            <img class="img-fluid" alt="Responsive image" src="data:image/png;base64, {{ plot_url }}">
+        {% if cystein_residues is defined %}
+        <p>Number of disulfide bridges does not match number of cystein residues in amino acid sequence</p>
+        {% endif %}
+    {% else %}
 
         {{ super() }}
 
