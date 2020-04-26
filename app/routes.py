@@ -41,7 +41,7 @@ def peptide_calculate():
 def protein_calculate():
     form = ProteinForm()
     if form.validate_on_submit():
-        Peptide = form.Peptide.data
+        Protein = form.Protein.data
         Hex = int(form.Hex.data)
         HexNac = int(form.HexNAc.data)
         Fuc = int(form.Fuc.data)

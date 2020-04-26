@@ -15,7 +15,7 @@ class PeptideForm(FlaskForm):
     submit_pep = SubmitField('Calculate')
 
 class ProteinForm(FlaskForm):
-    Peptide= StringField('Protein sequence', validators=[DataRequired(),Length(max=100000)])
+    Protein= StringField('Protein sequence', validators=[DataRequired(),Length(max=100000)])
     Hex = FloatField('Hexose', validators= [NumberRange(max=100)],default=0)
     HexNAc = FloatField('N-acetylhexosamine', validators= [NumberRange(max=100)],default=0)
     Fuc = FloatField('Fucose', validators= [NumberRange(max=100)],default=0)
