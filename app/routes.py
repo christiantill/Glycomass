@@ -1,14 +1,19 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, jsonify, current_app
 from app import app
-from app.forms import PeptideForm,ProteinForm, GlycanForm
+from app.forms import PeptideForm, ProteinForm, GlycanForm
 from app.masscalc import peptidemass, proteinmass, glycanmass
+from app.models import User, Notification
+import rq
 
 app.debug = True
+
+
 @app.route('/')
 @app.route('/index')
 def index():
-
     return render_template('index.html', title='Home')
+
+
 @app.route('/about')
 def about():
 
@@ -24,17 +29,19 @@ def peptide_calculate():
         Fuc = int(form.Fuc.data)
         Sia = int(form.Sia.data)
         Charge = int(form.Charge.data)
-        Carbamido= int(form.Carbamido.data)
+        Carbamido = int(form.Carbamido.data)
         Deamidation = int(form.Deamidation.data)
+        # job = q.enqueue_call(func=peptidemass, args=(Peptide, Hex, HexNac, Fuc, Sia, Charge, Carbamido, Deamidation),result_ttl=4000)
+        # print (job.get_id())
         result = peptidemass(Peptide, Hex, HexNac, Fuc, Sia, Charge, Carbamido, Deamidation)
-        data =result.split(",")
-        monomz=data[0]
-        mostab=data[1]
-        plot_url=data[2]
+        data = result.split(",")
+        monomz = data[0]
+        mostab = data[1]
+        plot_url = data[2]
         composition = data[3]
 
         return render_template('peptidemass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab,
-                           plot_url=plot_url, composition=composition)
+                               plot_url=plot_url, composition=composition)
     return render_template('peptidemass.html', title='Mass Calculation', form=form)
 
 @app.route('/protein_calculate',methods=['GET', 'POST'])
@@ -49,14 +56,14 @@ def protein_calculate():
         Charge = int(form.Charge.data)
         resolution= form.Resolution.data
         Deamidation = int(form.Deamidation.data)
-        Disulfidebridges =int(form.Disulfidebridges.data)
-        result = proteinmass(Peptide, Hex, HexNac, Fuc, Sia, Charge, Deamidation, Disulfidebridges, resolution)
-        data =result.split(",")
+        Disulfidebridges = int(form.Disulfidebridges.data)
+        result = proteinmass(Protein, Hex, HexNac, Fuc, Sia, Charge, Deamidation, Disulfidebridges, resolution)
+        data = result.split(",")
         monomz=data[0]
         mostab=data[1]
         plot_url=data[2]
         composition = data[3]
-        countC = Peptide.count('C')
+        countC = Protein.count('C')
         if (countC < (Disulfidebridges * 2)):
             cystein_residues = True
             return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab, plot_url=plot_url, composition=composition, cystein_residues= cystein_residues)
