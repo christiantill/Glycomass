@@ -6,7 +6,6 @@ from flask import Flask
 from config import Config
 from flask_bootstrap import Bootstrap
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -15,7 +14,6 @@ from app import routes
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 def create_app(config_class=Config):
-
 
     if not app.debug and not app.testing:
         # ...
