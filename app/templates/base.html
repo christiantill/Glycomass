@@ -1,7 +1,7 @@
 {% extends 'bootstrap/base.html' %}
 
 {% block title %}
-Glycomass
+    {% if title %}{{ title }} {% else %}{{ _('Glycomass') }}{% endif %}
 {% endblock %}
 
 {% block navbar %}

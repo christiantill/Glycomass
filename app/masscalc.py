@@ -118,34 +118,34 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	return '{:.4f},{:.4f},{},{}'.format(monomz, mostab, plot_url, composition)
 
 
-def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,resolution):
+def proteinmass(Protein, Hex, HexNAc, Fuc, Sia, Charge, Deamidation, Disulfidebridges, resolution):
 	import matplotlib.pyplot as plt
 	import numpy as np
 	import base64
 	from brainpy import isotopic_variants
 
-	Peptide = Peptide.upper()
+	Protein = Protein.upper()
 
-	countA = Peptide.count('A')
-	countR = Peptide.count('R')
-	countN = Peptide.count('N')
-	countD = Peptide.count('D')
-	countC = Peptide.count('C')
-	countQ = Peptide.count('Q')
-	countE = Peptide.count('E')
-	countG = Peptide.count('G')
-	countH = Peptide.count('H')
-	countI = Peptide.count('I')
-	countL = Peptide.count('L')
-	countK = Peptide.count('K')
-	countM = Peptide.count('M')
-	countF = Peptide.count('F')
-	countP = Peptide.count('P')
-	countS = Peptide.count('S')
-	countT = Peptide.count('T')
-	countW = Peptide.count('W')
-	countY = Peptide.count('Y')
-	countV = Peptide.count('V')
+	countA = Protein.count('A')
+	countR = Protein.count('R')
+	countN = Protein.count('N')
+	countD = Protein.count('D')
+	countC = Protein.count('C')
+	countQ = Protein.count('Q')
+	countE = Protein.count('E')
+	countG = Protein.count('G')
+	countH = Protein.count('H')
+	countI = Protein.count('I')
+	countL = Protein.count('L')
+	countK = Protein.count('K')
+	countM = Protein.count('M')
+	countF = Protein.count('F')
+	countP = Protein.count('P')
+	countS = Protein.count('S')
+	countT = Protein.count('T')
+	countW = Protein.count('W')
+	countY = Protein.count('Y')
+	countV = Protein.count('V')
 
 	A = [[3, 5, 1, 1, 0]]
 	R = [[6, 12, 4, 1, 0]]
