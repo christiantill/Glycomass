@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	import matplotlib.pyplot as plt
 	import numpy as np
@@ -55,7 +53,7 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	Na = [[8	,	13	,	1	,	5	,	0]]
 	Fu = [[6	,	10	,	0	,	4	,	0]]
 	Si = [[11	,	17	,	1	,	8	,	0]]
-	Deamido = [[0, 1, 1, -1, 0]]
+	Deamido = [[0, -1, -1, 1, 0]]
 
 	if (Carbamido == 1):
 		C = Ccarb
@@ -118,34 +116,34 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido ,Deamidation):
 	return '{:.4f},{:.4f},{},{}'.format(monomz, mostab, plot_url, composition)
 
 
-def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,resolution):
+def proteinmass(Protein, Hex, HexNAc, Fuc, Sia, Charge, Deamidation, Disulfidebridges, resolution):
 	import matplotlib.pyplot as plt
 	import numpy as np
 	import base64
 	from brainpy import isotopic_variants
 
-	Peptide = Peptide.upper()
+	Protein = Protein.upper()
 
-	countA = Peptide.count('A')
-	countR = Peptide.count('R')
-	countN = Peptide.count('N')
-	countD = Peptide.count('D')
-	countC = Peptide.count('C')
-	countQ = Peptide.count('Q')
-	countE = Peptide.count('E')
-	countG = Peptide.count('G')
-	countH = Peptide.count('H')
-	countI = Peptide.count('I')
-	countL = Peptide.count('L')
-	countK = Peptide.count('K')
-	countM = Peptide.count('M')
-	countF = Peptide.count('F')
-	countP = Peptide.count('P')
-	countS = Peptide.count('S')
-	countT = Peptide.count('T')
-	countW = Peptide.count('W')
-	countY = Peptide.count('Y')
-	countV = Peptide.count('V')
+	countA = Protein.count('A')
+	countR = Protein.count('R')
+	countN = Protein.count('N')
+	countD = Protein.count('D')
+	countC = Protein.count('C')
+	countQ = Protein.count('Q')
+	countE = Protein.count('E')
+	countG = Protein.count('G')
+	countH = Protein.count('H')
+	countI = Protein.count('I')
+	countL = Protein.count('L')
+	countK = Protein.count('K')
+	countM = Protein.count('M')
+	countF = Protein.count('F')
+	countP = Protein.count('P')
+	countS = Protein.count('S')
+	countT = Protein.count('T')
+	countW = Protein.count('W')
+	countY = Protein.count('Y')
+	countV = Protein.count('V')
 
 	A = [[3, 5, 1, 1, 0]]
 	R = [[6, 12, 4, 1, 0]]
@@ -172,7 +170,7 @@ def proteinmass(Peptide,Hex,HexNAc,Fuc,Sia,Charge,Deamidation,Disulfidebridges,r
 	Na = [[8, 13, 1, 5, 0]]
 	Fu = [[6, 10, 0, 4, 0]]
 	Si = [[11, 17, 1, 8, 0]]
-	Deamido = [[0, 1, 1, -1, 0]]
+	Deamido = [[0, -1, -1, 1, 0]]
 	Bridge = [[0, 2, 0, 0, 0]]
 
 	if (countC < (Disulfidebridges * 2)):
@@ -280,37 +278,39 @@ def glycanmass (Hex,HexNAc,Fuc, Sia, Charge, Sodium, Modification):
 				Si = [[16, 27, 1, 8, 0]]
 				Add = [[2, 4, 0, 0, 0]]  # add two additional modifications
 
-			if (Modification == "Peracetly"):
+			if Modification == "Peracetly":
 				He = [[12, 16, 0, 8, 0]]
 				Na = [[12, 17, 1, 7, 0]]
 				Fu = [[10, 14, 0, 6, 0]]
 				Si = [[17, 23, 1, 11, 0]]
 				Add = [[4, 4, 0, 2, 0]]  # add two additional modifications
 
-			Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
+			zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
 
-			if (Modification == "Permethyl"):
-				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
+			if Modification == "Permethyl":
+				zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
 
-			if (Modification == "Peracetly"):
-				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
-			if (Modification == "ReducedEnd"):
-				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + H2
+			if Modification == "Peracetly":
+				zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + Add
+			if Modification == "ReducedEnd":
+				zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + H2
 
-			if (Modification == "Label_2AB"):
-				Z = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [
-					[7, 8, 2, 0, 0]]
+			if Modification == "Label_2AB":
+				zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [[7, 8, 2, 0, 0]]
 
-			z = Z.tolist()
+			if Modification == "Label_2AA":
+				zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [[7, 9, 3, -1, 0]]
+
+			z = zz.tolist()
 			z = z[0]
 			composition ='C'+str(z[0])+ ' H'+str(z[1])+' N'+str(z[2])+' O'+str(z[3])+' S'+str(z[4])
 
 
-			AC = Z[0][0]
-			AH = Z[0][1]
-			AN = Z[0][2]
-			AO = Z[0][3]
-			AS = Z[0][4]
+			AC = zz[0][0]
+			AH = zz[0][1]
+			AN = zz[0][2]
+			AO = zz[0][3]
+			AS = zz[0][4]
 
 			peptide = {'H': AH, 'C': AC, 'O': AO, 'N': AN, 'S': AS}
 			theoretical_isotopic_cluster = isotopic_variants(peptide, npeaks=10, charge=Charge)
