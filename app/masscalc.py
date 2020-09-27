@@ -295,11 +295,10 @@ def glycanmass(Hex, HexNAc, Fuc, Sia, Charge, Sodium, Modification):
             zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + H2
 
         if Modification == "Label_2AB":
-            zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [[7, 7, 1, 1, 0]]
+            zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [[7, 8, 2, 0, 0]]
 
         if Modification == "Label_2AA":
-            zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [
-                [7, 9, 3, -1, 0]]
+            zz = H2O + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si) + [[7, 9, 3, -1, 0]]
 
         z = zz.tolist()
         z = z[0]
