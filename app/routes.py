@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, request, jsonify, current_
 from app import app
 from app.forms import PeptideForm, ProteinForm, GlycanForm
 from app.masscalc import peptidemass, proteinmass, glycanmass
-from app.models import User, Notification
+
 import rq
 
 app.debug = True

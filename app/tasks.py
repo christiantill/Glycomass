@@ -2,7 +2,7 @@ import sys
 import time
 from flask import render_template
 from rq import get_current_job
-from app import create_app, db
+from app import create_app
 from app.masscalc import peptidemass, proteinmass, glycanmass
 from app.models import Task, Input, User
 app = create_app()

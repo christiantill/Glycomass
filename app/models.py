@@ -1,6 +1,6 @@
 import time
 
-from app import db
+
 import redis
 import rq
 from flask import current_app
