@@ -40,5 +40,7 @@ def calculate_peptidemass(user_id):
         plot_url = data[2]
         composition = data[3]
         return monomz
+    except:
+        print("Error peptidemass")
 
 
