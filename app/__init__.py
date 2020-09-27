@@ -11,10 +11,11 @@ app.config.from_object(Config)
 
 bootstrap = Bootstrap(app)
 from app import routes
+
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-def create_app(config_class=Config):
 
+def create_app(config_class=Config):
     if not app.debug and not app.testing:
         # ...
 
