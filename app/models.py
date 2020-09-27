@@ -1,4 +1,5 @@
-from app import db
+import time
+
 import redis
 import rq
 from flask import current_app
@@ -79,11 +80,13 @@ class User(db.Model):
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self,
                                     complete=False).first()
+
     def add_notification(self, name, data):
         self.notifications.filter_by(name=name).delete()
         n = Notification(name=name, payload_json=json.dumps(data), user=self)
         db.session.add(n)
         return n
+
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)

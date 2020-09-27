@@ -1,0 +1,10 @@
+.idea/
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
+*.pyc
