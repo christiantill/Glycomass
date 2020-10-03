@@ -21,7 +21,9 @@ class Config(object):
             '*.bootstrapcdn.com',
             '*.googleapis.com',
             "www.google-analytics.com",
-            "*.s3.amazonaws.com /",
+            "glycomass.s3.amazonaws.com",
+            "glycomass.s3.eu-central-1.amazonaws.com",
+            "data:image/",
         ],
         'style-src': [
             '\'self\'',
