@@ -40,11 +40,12 @@
     </nav>
 {% endblock navbar %}
 
-{% block footer %}
+
     <footer class="footer mt-auto py-3">
       <div class="container">
+          {% block footer %}
         <span class="text-muted">Place sticky footer content here.</span>
+          {% endblock %}
       </div>
     </footer>
 
-{% endblock %}
