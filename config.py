@@ -24,6 +24,7 @@ class Config(object):
             "www.google-analytics.com",
             "glycomass.s3.amazonaws.com",
             "glycomass.s3.eu-central-1.amazonaws.com",
+            "www.googletagmanager.com",
 
         ],
         'style-src': [
@@ -48,6 +49,8 @@ class Config(object):
             'code.jquery.com',
             'cdnjs.cloudflare.com',
             'maxcdn.bootstrapcdn.com',
+            'nonce-{SERVER-GENERATED-NONCE}',
+            'googletagmanager.com',
         ],
         'frame-src': [
             '\'self\'',
