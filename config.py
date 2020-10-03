@@ -10,28 +10,28 @@ class Config(object):
     S3_KEY = os.environ.get("S3_KEY")
     S3_SECRET = os.environ.get("S3_SECRET")
     S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
-    SELF = "'self'"
+
     csp = {
         'font-src': [
             'themes.googleusercontent.com',
             '*.gstatic.com',
         ],
         'img-src': [
-            SELF,
+            '\'self\'',
             '*.bootstrapcdn.com',
             '*.googleapis.com',
             "www.google-analytics.com",
             "*.s3.amazonaws.com /",
         ],
         'style-src': [
-            SELF,
+            '\'self\'',
             'stackpath.bootstrapcdn.com',
             'fonts.googleapis.com',
             'ajax.googleapis.com',
             '*.gstatic.com',
         ],
         'script-src': [
-            SELF,
+            '\'self\'',
             'https://maxcdn.bootstrapcdn.com',
             'https://code.jquery.com',
             'https://www.google.com',
@@ -42,12 +42,16 @@ class Config(object):
             '*',
         ],
         'frame-src': [
-            SELF,
+            '\'self\'',
             'www.google.com',
             'www.youtube.com',
         ],
         'default-src': [
-            SELF,
+        '\'self\'',
+        '\'unsafe-inline\'',
+        'stackpath.bootstrapcdn.com',
+        'code.jquery.com',
+        'cdn.jsdelivr.net'
         ],
     }
 
