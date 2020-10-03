@@ -29,6 +29,8 @@ class Config(object):
             'fonts.googleapis.com',
             'ajax.googleapis.com',
             '*.gstatic.com',
+            'maxcdn.bootstrapcdn.com',
+            'cdnjs.cloudflare.com',
         ],
         'script-src': [
             '\'self\'',
@@ -40,6 +42,9 @@ class Config(object):
             '*.googleanalytics.com',
             '*.google-analytics.com',
             '*',
+            'code.jquery.com',
+            'cdnjs.cloudflare.com',
+            'maxcdn.bootstrapcdn.com',
         ],
         'frame-src': [
             '\'self\'',
@@ -48,10 +53,10 @@ class Config(object):
         ],
         'default-src': [
         '\'self\'',
-        '\'unsafe-inline\'',
         'stackpath.bootstrapcdn.com',
         'code.jquery.com',
-        'cdn.jsdelivr.net'
+        'cdn.jsdelivr.net',
+        'cdnjs.cloudflare.com',
         ],
     }
 
