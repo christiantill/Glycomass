@@ -5,7 +5,7 @@ from app.masscalc import peptidemass, proteinmass, glycanmass
 import os
 import requests
 app.debug = False
-GA_TRACKING_ID = os.environ['GA_TRACKING_ID']
+GA_TRACKING_ID = "UA-179539829-1"
 def track_event(category, action, label=None, value=0):
     data = {
         'v': '1',  # API Version.
