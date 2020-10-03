@@ -82,6 +82,9 @@ def peptide_calculate():
 
 @app.route('/protein_calculate', methods=['GET', 'POST'])
 def protein_calculate():
+    track_event(
+        category='Protein',
+        action='Opened Protein')
     form = ProteinForm()
     if form.validate_on_submit():
         Peptide = form.Peptide.data
@@ -102,10 +105,16 @@ def protein_calculate():
         countC = Peptide.count('C')
         if (countC < (Disulfidebridges * 2)):
             cystein_residues = True
+            track_event(
+                category='Protein',
+                action='Submitted Protein')
             return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz,
                                    mostab=mostab, plot_url=plot_url, composition=composition,
                                    cystein_residues=cystein_residues)
         else:
+            track_event(
+                category='Protein',
+                action='Submitted Protein')
             return render_template('proteinmass.html', title='Mass Calculation', form=form, monomz=monomz,
                                    mostab=mostab, plot_url=plot_url, composition=composition)
 
@@ -114,6 +123,9 @@ def protein_calculate():
 
 @app.route('/glycan_calculate', methods=['GET', 'POST'])
 def glycan_calculate():
+    track_event(
+        category='Glycan',
+        action='Opened Glycan')
     form = GlycanForm()
     if form.validate_on_submit():
         Hex = int(form.Hex.data)
@@ -125,6 +137,9 @@ def glycan_calculate():
         Sodium = form.Sodium.data
         if (Sodium == True and Charge <= 0):
             negative_ion = True
+            track_event(
+                category='Glycan',
+                action='Negative Ion')
             return render_template('glycan.html', title='Mass Calculation', form=form, negative_ion=negative_ion)
         else:
             result = glycanmass(Hex, HexNac, Fuc, Sia, Charge, Sodium, Modification)
@@ -133,7 +148,9 @@ def glycan_calculate():
             mostab = data[1]
             plot_url = data[2]
             composition = data[3]
-
+            track_event(
+                category='Glycan',
+                action='Submitted Glycan')
             return render_template('glycan.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab,
                                    plot_url=plot_url, composition=composition)
 
