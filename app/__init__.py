@@ -1,12 +1,14 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-
+from flask_talisman import Talisman
 from flask import Flask
 from config import Config
 from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
+
+talisman = Talisman(app, content_security_policy=Config.csp)
 app.config.from_object(Config)
 
 bootstrap = Bootstrap(app)
