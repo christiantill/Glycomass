@@ -48,7 +48,7 @@ class Config(object):
             'code.jquery.com',
             'cdnjs.cloudflare.com',
             'maxcdn.bootstrapcdn.com',
-            'nonce-{SERVER-GENERATED-NONCE}',
+
             'https://www.googletagmanager.com',
         ],
         'frame-src': [
