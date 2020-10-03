@@ -48,7 +48,7 @@ class Config(object):
             'code.jquery.com',
             'cdnjs.cloudflare.com',
             'maxcdn.bootstrapcdn.com',
-
+            '\'unsafe-inline\'',
             'https://www.googletagmanager.com',
         ],
         'frame-src': [
@@ -62,6 +62,7 @@ class Config(object):
         'code.jquery.com',
         'cdn.jsdelivr.net',
         'cdnjs.cloudflare.com',
+        '\'unsafe-inline\'',
         ],
     }
 
