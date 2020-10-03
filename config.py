@@ -11,13 +11,4 @@ class Config(object):
     S3_SECRET = os.environ.get("S3_SECRET")
     S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
 
-    csp = {
-        'default-src': [
-            '\'self\'',
-            '\'unsafe-inline\'',
-            'stackpath.bootstrapcdn.com',
-            'code.jquery.com',
-            'cdn.jsdelivr.net'
-        ]
-    }
 
