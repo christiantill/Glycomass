@@ -30,23 +30,31 @@ def track_event(category, action, label=None, value=0):
     response.raise_for_status()
 
 @app.route('/')
-def track_example():
-    track_event(
-        category='Example',
-        action='test action')
-    return 'Event tracked.'
+
+
 @app.route('/index')
 def index():
+    track_event(
+        category='Start',
+        action='Opened HP')
+
     return render_template('index.html', title='Home')
 
 
 @app.route('/about')
 def about():
+    track_event(
+        category='About',
+        action='Opened about')
+
     return render_template('about.html', title='About')
 
 
 @app.route('/peptide_calculate', methods=['GET', 'POST'])
 def peptide_calculate():
+    track_event(
+        category='Peptide',
+        action='Opened peptide')
     form = PeptideForm()
     if form.validate_on_submit():
         Peptide = form.Peptide.data
@@ -63,6 +71,9 @@ def peptide_calculate():
         mostab = data[1]
         plot_url = data[2]
         composition = data[3]
+        track_event(
+            category='Peptide',
+            action='Submitted peptide')
 
         return render_template('peptidemass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab,
                                plot_url=plot_url, composition=composition)
