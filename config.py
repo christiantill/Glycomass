@@ -25,6 +25,7 @@ class Config(object):
             "glycomass.s3.amazonaws.com",
             "glycomass.s3.eu-central-1.amazonaws.com",
             "www.googletagmanager.com",
+            'https://www.googletagmanager.com',
 
         ],
         'style-src': [
@@ -51,6 +52,7 @@ class Config(object):
             'maxcdn.bootstrapcdn.com',
             'nonce-{SERVER-GENERATED-NONCE}',
             'googletagmanager.com',
+            'https://www.googletagmanager.com',
         ],
         'frame-src': [
             '\'self\'',
