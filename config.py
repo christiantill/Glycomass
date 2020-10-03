@@ -20,6 +20,8 @@ class Config(object):
             SELF,
             '*.bootstrapcdn.com',
             '*.googleapis.com',
+            "www.google-analytics.com",
+            "*.s3.amazonaws.com /",
         ],
         'style-src': [
             SELF,
