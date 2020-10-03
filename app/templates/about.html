@@ -4,39 +4,28 @@
 
     <div class="jumbotron">
         <div class="container">
-            <h1 class="display-3">About</h1>
-            <p>Proteins play an important role in all cellular life. They can have structural functions, act as
-transporter, fulfil enzymatic roles or support signalling. To keep up with all these tasks, proteins
-need to be modified into different proteoforms, for example by adding glycans. Understanding this
-glycosylation process is of great interest for various research fields and for the pharmaceutical
-industry.
-One way to study these modifications is by mass spectrometry where glycosylation of proteins can
-be analysed after releasing glycans from the protein, digesting the protein into smaller peptides and
-glycopeptides or measuring the intact glycoprotein and deducing different proteoforms.</p>
+            <h1 class="display-2">About</h1>
+            <p>Creating Glycomass was a dream of us...</p>
             <p><a class="btn btn-primary btn-lg" href="{{ url_for('about') }}" role="button">Learn more &raquo;</a></p>
-            <p>The following calculators help to predict MS spectra for all three cases:</p>
+            <p>Glycomass is brought to you by:</p>
         </div>
     </div>
 
     <div class="container align-self-lg-center">
 
         <div class="row">
-            <div class="col-md-5">
-                <h2 class="text-center">Free Glycans</h2>
+            <div class="col-md-2">
+                <h2 class="text-center">Melissa Bärenfänger</h2>
 
-                <p><img src="https://glycomass.s3.eu-central-1.amazonaws.com/static/free_glycans.png" class="img-responsive" alt="Free Glycans image" /> </p>
-                <p class="text-center"><a class="btn btn-secondary" href="{{ url_for('glycan_calculate') }}" role="button">View details &raquo;</a></p>
+                <p><img src="https://media-exp1.licdn.com/dms/image/C4D03AQHFOtT9pilthg/profile-displayphoto-shrink_400_400/0?e=1606953600&v=beta&t=5hRqCIBcsEXdev8I82Zx4iOQE9QNHZ5gyrZXr6VTr0g" class="img-responsive" alt="Melissa Bärenfänger image" /> </p>
+                <p class="text-center"><a class="btn btn-secondary" href="https://www.linkedin.com/in/mbaerenfaenger/" role="button">View details &raquo;</a></p>
             </div>
-            <div class="col-md-5">
-                <h2 class="text-center">Peptides and glycopeptids</h2>
-                <p><img src="https://glycomass.s3.eu-central-1.amazonaws.com/static/Peptides_Glycopeptides.png "class="img-responsive" alt="Peptides and glycopeptids image" /> </p>
-                <p class="text-center"><a class="btn btn-secondary" href="{{ url_for('peptide_calculate') }}" role="button">View details &raquo;</a></p>
+            <div class="col-md-2">
+                <h2 class="text-center">Christian Till</h2>
+                <p><img src="https://media-exp1.licdn.com/dms/image/C4E03AQElEv9RBDhS7g/profile-displayphoto-shrink_400_400/0?e=1606953600&v=beta&t=Z8iwd1k4e4rRl7I9AolUf0mpEAdQTVYFVXyTV8v0ZoU"class="img-responsive" alt="Peptides and glycopeptids image" /> </p>
+                <p class="text-center"><a class="btn btn-secondary" href="https://www.linkedin.com/in/christiantill/" role="button">View details &raquo;</a></p>
             </div>
-            <div class="col-md-5">
-                <h2 class="text-center">Glycoproteins</h2>
-                <p><img src="https://glycomass.s3.eu-central-1.amazonaws.com/static/Glycoprotein.png" class="img-responsive" alt="Glycoprotein image" /> </p>
-                <p class="text-center"><a class="btn btn-secondary" href="{{ url_for('protein_calculate') }}" role="button">View details &raquo;</a></p>
-            </div>
+
         </div>
 
         <hr>

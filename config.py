@@ -25,6 +25,7 @@ class Config(object):
             "glycomass.s3.amazonaws.com",
             "glycomass.s3.eu-central-1.amazonaws.com",
             'https://www.googletagmanager.com',
+            "media-exp1.licdn.com",
 
         ],
         'style-src': [
