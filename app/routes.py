@@ -1,8 +1,10 @@
 from flask import render_template, redirect, url_for, request, send_file
+from werkzeug.utils import secure_filename
+
 from app import app
 from app.forms import PeptideForm, ProteinForm, GlycanForm
 from app.masscalc import peptidemass, proteinmass, glycanmass
-
+from .helper import *
 from .s3_demo import list_files, download_file, upload_file
 
 app.debug = False
@@ -11,12 +13,10 @@ UPLOAD_FOLDER = "uploads"
 BUCKET = "glycomass"
 import os
 
-@app.route('/')
 
+@app.route('/')
 @app.route('/index')
 def index():
-
-
     return render_template('index.html', title='Home')
 
 
@@ -31,39 +31,44 @@ def about():
 
     return render_template('about.html', title='About')
 
-@app.route("/identifier")
-def storage():
-    contents = list_files("flaskdrive")
-    return render_template('identifier.html', contents=contents)
 
-
-@app.route("/upload", methods=['POST'])
-def upload():
-    if request.method == "POST":
-        f = request.files['file']
-        f.save(f.filename)
-        upload_file(f"{f.filename}", BUCKET)
-
-        return redirect("/identifier")
-
-
-@app.route("/download/<filename>", methods=['GET'])
-def download(filename):
-    if request.method == 'GET':
-        output = download_file(filename, BUCKET)
-
-        return send_file(output, as_attachment=True)
-
-
-
-@app.route('/glycan_identifier')
+@app.route('/glycan_identifier', methods=['GET', 'POST'])
 def glyan_identifier():
+    if request.method == "POST":
+        # A
+        if "user_file" not in request.files:
+            return "No user_file key in request.files"
 
+        # B
+        file = request.files["user_file"]
+
+        """
+            These attributes are also available
+
+            file.filename               # The actual name of the file
+            file.content_type
+            file.content_length
+            file.mimetype
+
+        """
+
+        # C.
+        if file.filename == "":
+            return "Please select a file"
+
+        # D.
+        if file:
+            file.filename = secure_filename(file.filename)
+            output = upload_file_to_s3(file, app.config["S3_BUCKET"])
+            return str(output)
+
+        else:
+            return redirect("/")
     return render_template('identifier.html', title='Glycan Identifier')
+
 
 @app.route('/peptide_calculate', methods=['GET', 'POST'])
 def peptide_calculate():
-
     form = PeptideForm()
     if form.validate_on_submit():
         Peptide = form.Peptide.data
@@ -81,7 +86,6 @@ def peptide_calculate():
         plot_url = data[2]
         composition = data[3]
 
-
         return render_template('peptidemass.html', title='Mass Calculation', form=form, monomz=monomz, mostab=mostab,
                                plot_url=plot_url, composition=composition)
     return render_template('peptidemass.html', title='Mass Calculation', form=form)
@@ -89,7 +93,6 @@ def peptide_calculate():
 
 @app.route('/protein_calculate', methods=['GET', 'POST'])
 def protein_calculate():
-
     form = ProteinForm()
     if form.validate_on_submit():
         Peptide = form.Peptide.data
@@ -124,7 +127,6 @@ def protein_calculate():
 
 @app.route('/glycan_calculate', methods=['GET', 'POST'])
 def glycan_calculate():
-
     form = GlycanForm()
     if form.validate_on_submit():
         Hex = int(form.Hex.data)
