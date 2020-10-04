@@ -1,7 +1,9 @@
 boto3==1.15.11
 botocore==1.18.11
 brain-isotopic-distribution @ git+https://github.com/mobiusklein/brainpy.git@d27e726a67b086936990cbbcef74a827fc1542ff
+certifi==2020.6.20
 click==7.1.2
+cycler==0.10.0
 dominate==2.5.2
 Flask==1.1.2
 Flask-Bootstrap==3.3.7.1
@@ -10,7 +12,12 @@ Flask-WTF==0.14.3
 itsdangerous==1.1.0
 Jinja2==2.11.2
 jmespath==0.10.0
+kiwisolver==1.2.0
 MarkupSafe==1.1.1
+matplotlib==3.3.2
+numpy==1.19.2
+Pillow==7.2.0
+pyparsing==2.4.7
 python-dateutil==2.8.1
 redis==3.5.3
 rq==1.5.2
