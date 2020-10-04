@@ -8,7 +8,7 @@ from flask_bootstrap import Bootstrap
 from flask_talisman import Talisman
 app = Flask(__name__)
 app.config.from_object(Config)
-#talisman = Talisman(app, content_security_policy=Config.csp)
+talisman = Talisman(app, content_security_policy=Config.csp)
 bootstrap = Bootstrap(app)
 from app import routes
 
