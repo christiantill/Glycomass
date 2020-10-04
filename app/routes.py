@@ -1,12 +1,13 @@
-from flask import render_template, redirect, url_for, request, send_file
+from flask import render_template, redirect, url_for, request, send_file, jsonify, abort
 from werkzeug.utils import secure_filename
 
 from app import app
 from app.forms import PeptideForm, ProteinForm, GlycanForm
 from app.masscalc import peptidemass, proteinmass, glycanmass
 from .helper import *
-from .s3_demo import list_files, download_file, upload_file
-
+from .redis_resc import redis_conn, redis_queue
+from .rd_func import *
+from rq.job import Job
 app.debug = False
 GA_TRACKING_ID = "UA-179539829-1"
 UPLOAD_FOLDER = "uploads"
@@ -20,14 +21,8 @@ def index():
     return render_template('index.html', title='Home')
 
 
-@app.route('/about', methods=['GET', 'POST'])
+@app.route('/about')
 def about():
-    if request.method == "POST":
-        f = request.files['file']
-        f.save(os.path.join(UPLOAD_FOLDER, f.filename))
-        upload_file(f"uploads/{f.filename}", BUCKET)
-
-        return redirect("/storage")
 
     return render_template('about.html', title='About')
 
@@ -152,3 +147,56 @@ def glycan_calculate():
                                    plot_url=plot_url, composition=composition)
 
     return render_template('glycan.html', title='Mass Calculation', form=form)
+
+@app.route("/enqueue", methods=["POST", "GET"])
+def enqueue():
+    """Enqueues a task into redis queue to be processes.
+    Returns the job_id."""
+    if request.method == "GET":
+        query_param = request.args.get("external_id")
+        if not query_param:
+            abort(
+                404,
+                description=(
+                    "No query parameter external_id passed. "
+                    "Send a value to the external_id query parameter."
+                ),
+            )
+        data = {"external_id": query_param}
+    if request.method == "POST":
+        data = request.json
+
+    job = redis_queue.enqueue(some_long_function, data)
+    return jsonify({"job_id": job.id})
+
+
+@app.route("/check_status")
+def check_status():
+    """Takes a job_id and checks its status in redis queue."""
+    job_id = request.args["job_id"]
+
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+    except Exception as exception:
+        abort(404, description=exception)
+
+    return jsonify({"job_id": job.id, "job_status": job.get_status()})
+
+
+@app.route("/get_result")
+def get_result():
+    """Takes a job_id and returns the job's result."""
+    job_id = request.args["job_id"]
+
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+    except Exception as exception:
+        abort(404, description=exception)
+
+    if not job.result:
+        abort(
+            404,
+            description=f"No result found for job_id {job.id}. Try checking the job's status.",
+        )
+    return jsonify(job.result)
+

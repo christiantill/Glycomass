@@ -1,3 +1,8 @@
+import time
+
+from rq import get_current_job
+
+
 def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido, Deamidation):
     import matplotlib.pyplot as plt
     import numpy as np
