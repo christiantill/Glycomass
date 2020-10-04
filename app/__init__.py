@@ -38,3 +38,4 @@ def create_app(config_class=Config):
         app.logger.info('Glycomass startup')
 
     return app
+

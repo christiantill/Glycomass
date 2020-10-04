@@ -1,12 +1,15 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, send_file
 from app import app
 from app.forms import PeptideForm, ProteinForm, GlycanForm
 from app.masscalc import peptidemass, proteinmass, glycanmass
 
+from .s3_demo import list_files, download_file, upload_file
+
 app.debug = False
 GA_TRACKING_ID = "UA-179539829-1"
-
-
+UPLOAD_FOLDER = "uploads"
+BUCKET = "glycomass"
+import os
 @app.route('/')
 
 
@@ -17,11 +20,46 @@ def index():
     return render_template('index.html', title='Home')
 
 
-@app.route('/about')
+@app.route('/about', methods=['GET', 'POST'])
 def about():
+    if request.method == "POST":
+        f = request.files['file']
+        f.save(os.path.join(UPLOAD_FOLDER, f.filename))
+        upload_file(f"uploads/{f.filename}", BUCKET)
+
+        return redirect("/storage")
 
     return render_template('about.html', title='About')
 
+@app.route("/storage")
+def storage():
+    contents = list_files("flaskdrive")
+    return render_template('identifier.html', contents=contents)
+
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    if request.method == "POST":
+        f = request.files['file']
+        f.save(f.filename)
+        upload_file(f"{f.filename}", BUCKET)
+
+        return redirect("/storage")
+
+
+@app.route("/download/<filename>", methods=['GET'])
+def download(filename):
+    if request.method == 'GET':
+        output = download_file(filename, BUCKET)
+
+        return send_file(output, as_attachment=True)
+
+
+
+@app.route('/glycan_identifier')
+def glyan_identifier():
+
+    return render_template('identifier.html', title='Glycan Identifier')
 
 @app.route('/peptide_calculate', methods=['GET', 'POST'])
 def peptide_calculate():
