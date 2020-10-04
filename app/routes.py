@@ -10,8 +10,8 @@ GA_TRACKING_ID = "UA-179539829-1"
 UPLOAD_FOLDER = "uploads"
 BUCKET = "glycomass"
 import os
-@app.route('/')
 
+@app.route('/')
 
 @app.route('/index')
 def index():
@@ -31,7 +31,7 @@ def about():
 
     return render_template('about.html', title='About')
 
-@app.route("/storage")
+@app.route("/identifier")
 def storage():
     contents = list_files("flaskdrive")
     return render_template('identifier.html', contents=contents)
@@ -44,7 +44,7 @@ def upload():
         f.save(f.filename)
         upload_file(f"{f.filename}", BUCKET)
 
-        return redirect("/storage")
+        return redirect("/identifier")
 
 
 @app.route("/download/<filename>", methods=['GET'])
