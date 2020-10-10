@@ -265,7 +265,7 @@ def glycanmass(Hex, HexNAc, Fuc, Sia, Charge, Sodium, Modification):
     import base64
     from brainpy import isotopic_variants
 
-    if (Sodium == True and Charge <= 0):
+    if Sodium == True and Charge <= 0:
         print('It is unlikely to see sodium adducts in negative ion mode.')
     else:
         H2O = [[0, 2, 0, 1, 0]]
