@@ -72,7 +72,7 @@ def peptidemass(Peptide, Hex, HexNAc, Fuc, Sia, Charge, Carbamido, Deamidation):
         Z = SP + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
     else:
         Z = SP + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(
-            Si) + Deamidation * Deamido
+            Si) + Deamidation * np.array(Deamido)
 
     z = Z.tolist()
     z = z[0]
