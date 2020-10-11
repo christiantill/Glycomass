@@ -197,8 +197,9 @@ def proteinmass(Protein, Hex, HexNAc, Fuc, Sia, Charge, Deamidation, Disulfidebr
     if (Deamidation == 0):
         Z = SP + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
     else:
+
         Z = SP + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(
-            Si) + Deamidation * Deamido
+            Si) + Deamidation * np.array(Deamido)
 
     z = Z.tolist()
     z = z[0]
