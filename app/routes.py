@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, send_file, jsonify, abort
+from flask import render_template, redirect, url_for, request, send_file, jsonify, abort, send_from_directory
 from werkzeug.utils import secure_filename
 
 from app import app
@@ -200,3 +200,6 @@ def get_result():
         )
     return jsonify(job.result)
 
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'sitemap.xml')
