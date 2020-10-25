@@ -40,5 +40,5 @@ class GlycanForm(FlaskForm):
     Modification = RadioField("Modification", validators=[DataRequired()],
                               choices=[("None", "No modification"), ("Permethyl", "Permethylation"),
                                        ("Peracetly", "Peracetylation"), ("Label_2AA", "2AA-Label"),
-                                       ("Label_2AB", "2AB-Label"), ("ReducedEnd", "Reduced end")])
+                                       ("Label_2AB", "2AB-Label"), ("ReducedEnd", "Reduced end")],default="None")
     submit = SubmitField('Calculate')
