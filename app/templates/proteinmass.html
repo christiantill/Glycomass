@@ -2,8 +2,9 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
 <div class="container">
-  <h1>Calculate your Glycopeptide Mass</h1>
-
+  <h1>Glycoprotein Mass Calculator</h1>
+        <p>This calculator will calculate the monoisotopic mass, most abundant mass and molecular formular of your
+            glycoprotein sequence. It will also generate a spectrum to show the isotopic distribution. </p>
     {{ wtf.quick_form(form) }}
     {% if monomz is defined %}
          <h3>

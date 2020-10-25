@@ -2,7 +2,9 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
 <div class="container">
-  <h1>Calculate your Glycan Mass</h1>
+  <h1>Glycan Mass Calculator</h1>
+ <p>This calculator will calculate the monoisotopic mass, most abundant mass and composition of your
+            glycan mass. It will also generate a spectrum to show the isotopic distribution. </p>
 
     {{ wtf.quick_form(form) }}
     {% if negative_ion is defined %}
