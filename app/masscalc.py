@@ -192,7 +192,7 @@ def proteinmass(Protein, Hex, HexNAc, Fuc, Sia, Charge, Deamidation, Disulfidebr
         V) + H2O
 
     if (Disulfidebridges > 0):
-        SP = SP - (Disulfidebridges * Bridge)
+        SP = SP - (Disulfidebridges * np.array(Bridge))
 
     if (Deamidation == 0):
         Z = SP + Hex * np.array(He) + HexNAc * np.array(Na) + Fuc * np.array(Fu) + Sia * np.array(Si)
