@@ -23,7 +23,7 @@ class ProteinForm(FlaskForm):
     Sia = FloatField('Sialic acid', validators=[NumberRange(max=100)], default=0)
     Charge = FloatField('Charge', validators=None, default=0)
     Deamidation = FloatField('Deamidation', validators=[NumberRange(min=0)], default=0)
-    Disulfidebridges = FloatField('Disulfide bridges', validators=[NumberRange(min=0)], default=0)
+    Disulfidebridges = FloatField('Disulfide bridges', validators=[NumberRange(min=0,max=300)], default=0)
     Resolution = RadioField("Resolution", validators=[DataRequired()],
                             choices=[("low", "low resolution"), ("medium", "medium resolution"),
                                      ("super high", "super high resolution")],default="low")
