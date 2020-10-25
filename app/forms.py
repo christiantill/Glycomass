@@ -26,7 +26,7 @@ class ProteinForm(FlaskForm):
     Disulfidebridges = FloatField('Disulfide bridges', validators=[NumberRange(min=0)], default=0)
     Resolution = RadioField("Resolution", validators=[DataRequired()],
                             choices=[("low", "low resolution"), ("medium", "medium resolution"),
-                                     ("super high", "super high resolution")])
+                                     ("super high", "super high resolution")],default="low")
     submit = SubmitField('Calculate')
 
 
