@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{% block title %}GlycoMass{% endblock %}</title>
+<meta name="description" content="Exact masses and isotope spectra for glycans, glycopeptides and glycoproteins." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='vendor/uPlot.min.css') }}" />
+</head>
+<body>
+<svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+<header>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/" aria-label="GlycoMass home">
+        <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="30" height="30" rx="9" fill="#002C73"/>
+          <path d="M5 22 L9 22 L11 13 L14 24 L17 8 L20 19 L23 15 L27 15" stroke="#FFD009" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        Glyco<b>Mass</b>
+      </a>
+      <ul class="navlinks">
+        <li><a href="/peptide">Glycopeptide</a></li>
+        <li><a href="/protein">Glycoprotein</a></li>
+        <li><a href="/glycan">Glycan</a></li>
+        <li><a href="/docs">API</a></li>
+      </ul>
+      <a class="nav-cta" href="/glycan">Open calculators</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap" style="padding-block:clamp(2.5rem,6vw,5rem)">
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  <div class="wrap"><div class="legal"><span>© 2026 GlycoMass · glycomass.com</span><span>monoisotopic · most-abundant · brainpy</span></div></div>
+</footer>
+<script src="{{ url_for('static', path='vendor/htmx.min.js') }}"></script>
+<script src="{{ url_for('static', path='vendor/uPlot.iife.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/app.js') }}"></script>
+</body>
+</html>

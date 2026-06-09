@@ -39,3 +39,9 @@ def test_unknown_resolution_returns_422():
 def test_missing_required_field_returns_422():
     r = client.post("/api/v1/calculate/peptide", json={"charge": 1})
     assert r.status_code == 422
+
+
+def test_static_css_served():
+    r = client.get("/static/css/app.css")
+    assert r.status_code == 200
+    assert "--gold" in r.text
