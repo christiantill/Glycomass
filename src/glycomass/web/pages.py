@@ -49,10 +49,15 @@ def protein_result(
     charge: int = Form(1), deamidation: int = Form(0),
     disulfide_bridges: int = Form(0), resolution: str = Form("medium"),
 ) -> HTMLResponse:
-    result = protein_mass(
-        sequence, hex=hex, hexnac=hexnac, fuc=fuc, sia=sia, charge=charge,
-        deamidation=deamidation, disulfide_bridges=disulfide_bridges, resolution=resolution,
-    )
+    try:
+        result = protein_mass(
+            sequence, hex=hex, hexnac=hexnac, fuc=fuc, sia=sia, charge=charge,
+            deamidation=deamidation, disulfide_bridges=disulfide_bridges, resolution=resolution,
+        )
+    except KeyError:
+        return templates.TemplateResponse(
+            request, "_error.html", {"message": f"Unknown resolution: {resolution}"}
+        )
     return templates.TemplateResponse(request, "_result.html", {"result": result})
 
 

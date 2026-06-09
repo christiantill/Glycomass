@@ -42,3 +42,9 @@ def test_index_renders_brand_and_links():
     assert r.status_code == 200
     assert "GlycoMass" in r.text
     assert 'href="/glycan"' in r.text
+
+
+def test_protein_bad_resolution_renders_error_not_500():
+    r = client.post("/protein", data={"sequence": "PEPTIDE", "charge": 1, "resolution": "ultra"})
+    assert r.status_code == 200
+    assert "error-note" in r.text
