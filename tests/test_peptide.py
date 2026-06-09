@@ -17,3 +17,7 @@ def test_deamidation_shifts_mass():
     # NLTSVK, z=1, deamidation 1 -> 662.3719 ; deamidation 2 -> 663.3559 (fixtures)
     assert abs(peptide_mass("NLTSVK", charge=1, deamidation=1).mono_mz - 662.3719) < 1e-3
     assert abs(peptide_mass("NLTSVK", charge=1, deamidation=2).mono_mz - 663.3559) < 1e-3
+
+
+def test_non_amino_acid_chars_ignored():
+    assert peptide_mass("PEP-TIDE", charge=1).mono_mz == peptide_mass("PEPTIDE", charge=1).mono_mz
