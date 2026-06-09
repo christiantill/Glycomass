@@ -53,8 +53,11 @@ module = ["brainpy.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--import-mode=importlib --cov=src/glycomass --cov-report=term-missing --cov-fail-under=80"
+addopts = "--import-mode=importlib --cov=src/glycomass --cov-report=term-missing --cov-fail-under=80 -m 'not grid'"
 testpaths = ["tests"]
+markers = [
+    "grid: comprehensive legacy-parity grid (~800 cases, slow); run with: uv run pytest -m grid --no-cov",
+]
 
 [tool.coverage.run]
 branch = true
