@@ -90,3 +90,11 @@ framework-free domain core in `src/glycomass/core/`:
 **Ground truth:** `fixtures/legacy_masscalc.json` (Phase 0) pins the deployed results;
 `tests/test_golden.py` asserts the core reproduces them within 1e-3. Regenerate via
 `tools/legacy-fixtures/`. Do not loosen the tolerance to make a test pass.
+
+### Phase 2 — web + API (`src/glycomass/web/`)
+- `web/app.py` — `create_app()` factory (`glycomass-api` runs uvicorn on :8000).
+- `web/api/v1.py` — JSON: `GET /api/v1/health`, `POST /api/v1/calculate/{peptide,protein,glycan}` → `MassResult`. OpenAPI at `/docs`.
+- `web/pages.py` — HTML: `/`, `/peptide`, `/protein`, `/glycan` (HTMX form POST → `_result.html` fragment; uPlot draws the spectrum client-side).
+- `config.py` (pydantic-settings, `GLYCOMASS_*`), `logging_config.py` (structlog).
+- Static design system in `web/static/css/app.css` (ported from `design/glycomass-landing.html`); HTMX + uPlot vendored under `web/static/vendor/`.
+- Run locally: `uv run glycomass-api` → http://localhost:8000 (`/docs` for the API).
