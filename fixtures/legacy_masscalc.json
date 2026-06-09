@@ -1,0 +1,570 @@
+{
+  "_meta": {
+    "description": "Ground-truth outputs of the deployed app/masscalc.py, captured in the pinned legacy stack. The rewrite must reproduce these (tolerance ~1e-3 on m/z) except documented legacy-bug fixes.",
+    "source": "app/masscalc.py @ commit 83ecbbc (deployed)",
+    "precision": "monomz/mostab are the app's %.4f display values; composition is exact.",
+    "brainpy_pinned": "brain-isotopic-distribution @ git+https://github.com/mobiusklein/brainpy.git@d27e726a67b086936990cbbcef74a827fc1542ff",
+    "versions": {
+      "python": "3.7.17",
+      "numpy": "1.19.2",
+      "matplotlib": "3.3.2",
+      "brainpy": "unknown (module 'brainpy' has no attribute '__version__')"
+    }
+  },
+  "peptidemass": [
+    {
+      "inputs": {
+        "Peptide": "PEPTIDE",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 800.3672,
+      "mostab": 800.3672,
+      "composition": "C34 H53 N7 O15 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "PEPTIDE",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 2,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 400.6873,
+      "mostab": 400.6873,
+      "composition": "C34 H53 N7 O15 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "PEPTIDE",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 3,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 267.4606,
+      "mostab": 267.4606,
+      "composition": "C34 H53 N7 O15 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "GG",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 133.0608,
+      "mostab": 133.0608,
+      "composition": "C4 H8 N2 O3 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "MMMM",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 543.1798,
+      "mostab": 543.1798,
+      "composition": "C20 H38 N4 O5 S4"
+    },
+    {
+      "inputs": {
+        "Peptide": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 2,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 1198.0697,
+      "mostab": 1198.5712,
+      "composition": "C107 H159 N29 O30 S2"
+    },
+    {
+      "inputs": {
+        "Peptide": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 2,
+        "Carbamido": 1,
+        "Deamidation": 0
+      },
+      "monomz": 1226.5805,
+      "mostab": 1227.082,
+      "composition": "C109 H162 N30 O31 S2"
+    },
+    {
+      "inputs": {
+        "Peptide": "NLTSVCWK",
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 2,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 1651.157,
+      "mostab": 1651.6585,
+      "composition": "C132 H213 N17 O77 S1"
+    },
+    {
+      "inputs": {
+        "Peptide": "NLTSVCWK",
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 2,
+        "Carbamido": 1,
+        "Deamidation": 0
+      },
+      "monomz": 1679.6678,
+      "mostab": 1680.1693,
+      "composition": "C134 H216 N18 O78 S1"
+    },
+    {
+      "inputs": {
+        "Peptide": "NLTSVCWK",
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 2573.058,
+      "mostab": 2574.061,
+      "composition": "C104 H169 N15 O57 S1"
+    },
+    {
+      "inputs": {
+        "Peptide": "PEPTIDE",
+        "Hex": 3,
+        "HexNAc": 2,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 0
+      },
+      "monomz": 1692.6845,
+      "mostab": 1692.6845,
+      "composition": "C68 H109 N9 O40 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "NLTSVK",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 1
+      },
+      "monomz": 662.3719,
+      "mostab": 662.3719,
+      "composition": "C28 H51 N7 O11 S0"
+    },
+    {
+      "inputs": {
+        "Peptide": "NLTSVK",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Carbamido": 0,
+        "Deamidation": 2
+      },
+      "monomz": 663.3559,
+      "mostab": 663.3559,
+      "composition": "C28 H50 N6 O12 S0"
+    }
+  ],
+  "proteinmass": [
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 5,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "low"
+      },
+      "monomz": 479.8323,
+      "mostab": 480.0823,
+      "composition": "C107 H159 N29 O30 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 5,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "medium"
+      },
+      "monomz": 479.8323,
+      "mostab": 480.0323,
+      "composition": "C107 H159 N29 O30 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 10,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "super high"
+      },
+      "monomz": 240.4198,
+      "mostab": 240.5198,
+      "composition": "C107 H159 N29 O30 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 10,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "low"
+      },
+      "monomz": 240.4198,
+      "mostab": 240.5698,
+      "composition": "C107 H159 N29 O30 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 5,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "medium"
+      },
+      "monomz": 949.9983,
+      "mostab": 950.3993,
+      "composition": "C197 H305 N35 O95 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "ACDEFGHIKLMNPQRSTVWY",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 5,
+        "Deamidation": 1,
+        "Disulfidebridges": 0,
+        "resolution": "medium"
+      },
+      "monomz": 480.0291,
+      "mostab": 480.2291,
+      "composition": "C107 H158 N28 O31 S2"
+    },
+    {
+      "inputs": {
+        "Protein": "CCACCAGGKL",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 3,
+        "Deamidation": 0,
+        "Disulfidebridges": 0,
+        "resolution": "medium"
+      },
+      "monomz": 310.1218,
+      "mostab": 310.1208,
+      "composition": "C34 H61 N11 O11 S4"
+    },
+    {
+      "inputs": {
+        "Protein": "CCACCAGGKL",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 3,
+        "Deamidation": 0,
+        "Disulfidebridges": 1,
+        "resolution": "medium"
+      },
+      "monomz": 309.4499,
+      "mostab": 309.4489,
+      "composition": "C34 H59 N11 O11 S4"
+    },
+    {
+      "inputs": {
+        "Protein": "CCACCAGGKL",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 3,
+        "Deamidation": 0,
+        "Disulfidebridges": 2,
+        "resolution": "medium"
+      },
+      "monomz": 308.778,
+      "mostab": 308.777,
+      "composition": "C34 H57 N11 O11 S4"
+    },
+    {
+      "inputs": {
+        "Protein": "AG",
+        "Hex": 0,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Deamidation": 0,
+        "Disulfidebridges": 1,
+        "resolution": "low"
+      },
+      "monomz": 145.0608,
+      "mostab": 145.0608,
+      "composition": "C5 H8 N2 O3 S0"
+    }
+  ],
+  "glycanmass": [
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 1641.5994,
+      "mostab": 1641.5994,
+      "composition": "C62 H104 N4 O46 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 2369.8482,
+      "mostab": 2370.8517,
+      "composition": "C90 H148 N6 O66 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 2,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 1185.4277,
+      "mostab": 1185.9292,
+      "composition": "C90 H148 N6 O66 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 3,
+        "HexNAc": 2,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 911.3351,
+      "mostab": 911.3351,
+      "composition": "C34 H58 N2 O26 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 1,
+        "HexNAc": 0,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 181.0707,
+      "mostab": 181.0707,
+      "composition": "C6 H12 N0 O6 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": 1,
+        "Sodium": true,
+        "Modification": "None"
+      },
+      "monomz": 1663.5892,
+      "mostab": 1663.5892,
+      "composition": "C62 H104 N4 O46 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": -1,
+        "Sodium": false,
+        "Modification": "None"
+      },
+      "monomz": 1639.5849,
+      "mostab": 1639.5849,
+      "composition": "C62 H104 N4 O46 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 0,
+        "Sia": 0,
+        "Charge": -1,
+        "Sodium": true,
+        "Modification": "None"
+      },
+      "result": null,
+      "note": "function returned None (guard branch hit)"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "Permethyl"
+      },
+      "monomz": 2944.4898,
+      "mostab": 2945.4933,
+      "composition": "C131 H230 N6 O66 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "Peracetly"
+      },
+      "monomz": 3756.1968,
+      "mostab": 3757.2003,
+      "composition": "C156 H214 N6 O99 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "ReducedEnd"
+      },
+      "monomz": 2371.8638,
+      "mostab": 2372.8673,
+      "composition": "C90 H150 N6 O66 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "Label_2AB"
+      },
+      "monomz": 2489.9169,
+      "mostab": 2490.9204,
+      "composition": "C97 H156 N8 O66 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": false,
+        "Modification": "Label_2AA"
+      },
+      "monomz": 2490.901,
+      "mostab": 2491.9045,
+      "composition": "C97 H155 N7 O67 S0"
+    },
+    {
+      "inputs": {
+        "Hex": 5,
+        "HexNAc": 4,
+        "Fuc": 1,
+        "Sia": 2,
+        "Charge": 1,
+        "Sodium": true,
+        "Modification": "Permethyl"
+      },
+      "monomz": 2966.4796,
+      "mostab": 2967.4831,
+      "composition": "C131 H230 N6 O66 S0"
+    }
+  ]
+}
