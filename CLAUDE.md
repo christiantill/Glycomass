@@ -71,3 +71,22 @@ The full amino-acid + monosaccharide `[C,H,N,O,S]` table is re-declared inline i
 `peptidemass`, `proteinmass`, *and* `proteincalc_temp.py` (no shared constants module). Any
 element-vector fix must be made in 2–3 places. The glycopeptide identifier duplicates the same
 monosaccharide knowledge again with no shared code.
+
+## 2026 Rewrite (in progress)
+
+The rewrite lives under `src/glycomass/` (FastAPI app to come). Phase 1 delivers the
+framework-free domain core in `src/glycomass/core/`:
+
+- `composition.py` — `Composition` `[C,H,N,O,S]` value object.
+- `constants.py` — the SINGLE element/monosaccharide table (replaces the legacy 3× duplication).
+- `isotopes.py` — brainpy wrapper → mono m/z, most-abundant m/z, stick spectrum.
+- `peptide.py` / `protein.py` / `glycan.py` — the three calculators returning a typed `MassResult`.
+
+**Commands:**
+- `uv sync --extra dev` — install (builds brainpy from sdist; needs a C compiler).
+- `uv run pytest` — tests + coverage (golden parity in `tests/test_golden.py`).
+- `uv run mypy` / `uv run ruff check` — types / lint.
+
+**Ground truth:** `fixtures/legacy_masscalc.json` (Phase 0) pins the deployed results;
+`tests/test_golden.py` asserts the core reproduces them within 1e-3. Regenerate via
+`tools/legacy-fixtures/`. Do not loosen the tolerance to make a test pass.
