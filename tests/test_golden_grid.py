@@ -65,10 +65,10 @@ def test_glycan_grid(case):
     if "error" in case:
         pytest.skip("legacy errored on this case")
     i = case["inputs"]
-    kwargs = dict(
-        hex=i["Hex"], hexnac=i["HexNAc"], fuc=i["Fuc"], sia=i["Sia"],
-        charge=i["Charge"], sodium=i["Sodium"], modification=i["Modification"],
-    )
+    kwargs = {
+        "hex": i["Hex"], "hexnac": i["HexNAc"], "fuc": i["Fuc"], "sia": i["Sia"],
+        "charge": i["Charge"], "sodium": i["Sodium"], "modification": i["Modification"],
+    }
     if case.get("result", "x") is None:
         with pytest.raises(NegativeIonSodiumError):
             glycan_mass(**kwargs)
