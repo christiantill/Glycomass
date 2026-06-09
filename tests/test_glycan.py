@@ -26,3 +26,10 @@ def test_permethyl_and_peracetyl():
 def test_sodium_in_negative_mode_raises():
     with pytest.raises(NegativeIonSodiumError):
         glycan_mass(hex=5, hexnac=4, charge=-1, sodium=True)
+
+
+def test_unknown_modification_falls_back_to_native():
+    native = glycan_mass(5, 4, 1, 2, charge=1, modification="None")
+    bogus = glycan_mass(5, 4, 1, 2, charge=1, modification="Permethy")  # typo -> native
+    assert bogus.mono_mz == native.mono_mz
+    assert bogus.composition == native.composition

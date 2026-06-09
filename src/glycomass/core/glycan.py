@@ -11,6 +11,7 @@ _SIGMA = 0.0005
 
 # modification -> (Hex, HexNAc, Fuc, Sia tables, extra reducing-end group)
 _MODS: dict[str, tuple[Composition, Composition, Composition, Composition, Composition]] = {
+    "None": (K.HEX, K.HEXNAC, K.FUC, K.SIA, Composition()),
     "none": (K.HEX, K.HEXNAC, K.FUC, K.SIA, Composition()),
     "Permethyl": (K.HEX_PERMETHYL, K.HEXNAC_PERMETHYL, K.FUC_PERMETHYL, K.SIA_PERMETHYL, K.PERMETHYL_ADD),
     "Peracetly": (K.HEX_PERACETYL, K.HEXNAC_PERACETYL, K.FUC_PERACETYL, K.SIA_PERACETYL, K.PERACETYL_ADD),

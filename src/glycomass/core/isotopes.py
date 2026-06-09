@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from brainpy import isotopic_variants
 
@@ -7,13 +9,13 @@ from glycomass.core.composition import Composition
 from glycomass.core.results import Spectrum
 
 
+@dataclass(frozen=True, slots=True)
 class IsotopeResult:
     """Lightweight carrier for isotope-profile outputs."""
 
-    def __init__(self, mono_mz: float, most_abundant_mz: float, spectrum: Spectrum) -> None:
-        self.mono_mz = mono_mz
-        self.most_abundant_mz = most_abundant_mz
-        self.spectrum = spectrum
+    mono_mz: float
+    most_abundant_mz: float
+    spectrum: Spectrum
 
 
 def isotope_profile(
