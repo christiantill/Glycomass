@@ -17,3 +17,11 @@ def test_env_prefix_override(monkeypatch):
 
 def test_get_settings_is_cached():
     assert get_settings() is get_settings()
+
+
+def test_phase3_config_defaults():
+    from glycomass.config import Settings
+    s = Settings()
+    assert s.database_url.startswith("sqlite+aiosqlite")
+    assert s.redis_url.startswith("redis://")
+    assert s.max_upload_bytes == 250 * 1024 * 1024
