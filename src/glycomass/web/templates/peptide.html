@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Glycopeptide calculator · GlycoMass{% endblock %}
+{% block content %}
+<span class="eyebrow">Calculator</span>
+<h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--step-3);color:var(--paper);margin:.6rem 0 1.6rem">Glycopeptide</h1>
+<div class="calc-shell">
+  <form class="calc-form" hx-post="/peptide" hx-target="#result" hx-swap="innerHTML">
+    <div><label>Peptide sequence</label><input type="text" name="sequence" value="PEPTIDE"></div>
+    <div class="calc-grid">
+      <div><label>Hex</label><input type="number" name="hex" value="0" min="0"></div>
+      <div><label>HexNAc</label><input type="number" name="hexnac" value="0" min="0"></div>
+      <div><label>Fuc</label><input type="number" name="fuc" value="0" min="0"></div>
+      <div><label>Sia</label><input type="number" name="sia" value="0" min="0"></div>
+      <div><label>Charge</label><input type="number" name="charge" value="1"></div>
+      <div><label>Deamidation</label><input type="number" name="deamidation" value="0" min="0"></div>
+    </div>
+    <label style="display:flex;gap:.5rem;align-items:center;text-transform:none;letter-spacing:0">
+      <input type="checkbox" name="carbamidomethyl" value="true" style="width:auto"> Carbamidomethyl (Cys)
+    </label>
+    <button class="btn btn-primary" type="submit">Calculate</button>
+  </form>
+  <div id="result" class="result-panel"><p style="color:var(--muted)">Enter a peptide and calculate.</p></div>
+</div>
+{% endblock %}

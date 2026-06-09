@@ -1,0 +1,6 @@
+<div class="result-readout">
+  <div><div class="k">Monoisotopic</div><div class="v">{{ "%.4f"|format(result.mono_mz) }}<small>m/z</small></div></div>
+  <div><div class="k">Most abundant</div><div class="v">{{ "%.4f"|format(result.most_abundant_mz) }}<small>m/z</small></div></div>
+  <div><div class="k">Formula</div><div class="v" style="font-size:.95rem">{{ result.composition }}</div></div>
+</div>
+<div class="spectrum" data-spectrum='{"mz": {{ result.spectrum.mz|tojson }}, "intensity": {{ result.spectrum.intensity|tojson }}}'></div>
