@@ -8,7 +8,7 @@ misc.xml
 venv/
 ENV/
 *.pyc
-config.py
+/config.py
 
 # python tooling / test artifacts (2026 rewrite)
 __pycache__/
