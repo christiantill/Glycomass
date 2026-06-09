@@ -35,3 +35,10 @@ def test_peptide_post_returns_mono():
 def test_protein_form_has_resolution_select():
     r = client.get("/protein")
     assert "super high" in r.text
+
+
+def test_index_renders_brand_and_links():
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "GlycoMass" in r.text
+    assert 'href="/glycan"' in r.text
