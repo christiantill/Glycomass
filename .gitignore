@@ -9,3 +9,11 @@ venv/
 ENV/
 *.pyc
 config.py
+
+# python tooling / test artifacts (2026 rewrite)
+__pycache__/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
