@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from glycomass.config import get_settings
 from glycomass.logging_config import configure_logging
 from glycomass.web.api.v1 import router as api_router
+from glycomass.web.identifier import router as identifier_router
 from glycomass.web.pages import router as pages_router
 
 _HERE = Path(__file__).parent
@@ -27,6 +28,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Glycomass", version="0.1.0", lifespan=lifespan)
     app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
     app.include_router(api_router)
+    app.include_router(identifier_router)
     app.include_router(pages_router)
     return app
 
