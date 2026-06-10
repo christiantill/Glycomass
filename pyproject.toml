@@ -28,6 +28,7 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.10",
     "httpx>=0.27",
+    "pytest-asyncio>=0.23",
 ]
 
 [project.scripts]
@@ -63,6 +64,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --cov=src/glycomass --cov-report=term-missing --cov-fail-under=80 -m 'not grid'"
+asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = [
     "grid: comprehensive legacy-parity grid (~800 cases, slow); run with: uv run pytest -m grid --no-cov",
