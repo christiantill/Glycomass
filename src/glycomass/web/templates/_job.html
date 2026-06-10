@@ -1,0 +1,11 @@
+{% if status in ("queued", "running") %}
+<div hx-get="/identifier/{{ job_id }}" hx-trigger="load delay:1s" hx-swap="outerHTML">
+  <div class="result-readout"><div><div class="k">Status</div><div class="v">{{ status }}…</div></div></div>
+  <div class="bar"><i></i></div>
+</div>
+{% elif status == "done" %}
+<div class="result-readout"><div><div class="k">Status</div><div class="v">done</div></div></div>
+<a class="btn btn-primary" href="/identifier/{{ job_id }}/download">Download cleaned MGF</a>
+{% else %}
+<div class="error-note">Job {{ status }}. Please try another file.</div>
+{% endif %}
