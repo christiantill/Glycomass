@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from typing import BinaryIO
 
 from arq import create_pool
-from arq.connections import RedisSettings
+from arq.connections import ArqRedis, RedisSettings
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
-from sqlalchemy import select
+from starlette.concurrency import run_in_threadpool
 
 from glycomass.config import get_settings
 from glycomass.db.models import IdentifierJob
@@ -15,6 +16,22 @@ from glycomass.db.session import get_sessionmaker
 from glycomass.web.pages import templates
 
 router = APIRouter()
+
+
+async def _get_arq_pool(request: Request) -> ArqRedis:
+    """Return a process-wide arq (Redis) pool, creating it once and caching it on
+    ``app.state`` so each upload reuses one pool (closed on shutdown) instead of
+    leaking a fresh connection pool per request."""
+    pool = getattr(request.app.state, "arq_pool", None)
+    if pool is None:
+        pool = await create_pool(RedisSettings.from_dsn(get_settings().redis_url))
+        request.app.state.arq_pool = pool
+    return pool
+
+
+def _write_upload(src: BinaryIO, dest: Path) -> None:
+    with dest.open("wb") as fh:
+        shutil.copyfileobj(src, fh)
 
 
 @router.get("/identifier", response_class=HTMLResponse)
@@ -34,18 +51,38 @@ async def identifier_upload(request: Request, mgf_file: UploadFile) -> HTMLRespo
         )
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     sm = get_sessionmaker()
+    # Insert the job row in a short session, then persist the upload OUTSIDE the
+    # session and OFF the event loop (the copy can be large; don't hold a DB
+    # transaction or block the loop while it runs).
     async with sm() as session:
         job = IdentifierJob(upload_path="")
         session.add(job)
         await session.commit()
         jid = job.id
-        dest = settings.upload_dir / f"{jid}.mgf"
-        with dest.open("wb") as fh:
-            shutil.copyfileobj(mgf_file.file, fh)
-        job.upload_path = str(dest)
-        await session.commit()
-    pool = await create_pool(RedisSettings.from_dsn(settings.redis_url))
-    await pool.enqueue_job("identifier_task", jid)
+    dest = settings.upload_dir / f"{jid}.mgf"
+    await run_in_threadpool(_write_upload, mgf_file.file, dest)
+    async with sm() as session:
+        row = await session.get(IdentifierJob, jid)
+        if row is not None:
+            row.upload_path = str(dest)
+            await session.commit()
+
+    try:
+        pool = await _get_arq_pool(request)
+        await pool.enqueue_job("identifier_task", jid)
+    except Exception:
+        async with sm() as session:
+            row = await session.get(IdentifierJob, jid)
+            if row is not None:
+                row.status = "failed"
+                row.error = "Could not queue the job (queue unavailable)."
+                await session.commit()
+        return templates.TemplateResponse(
+            request,
+            "_error.html",
+            {"message": "Could not queue the job — please retry."},
+            status_code=503,
+        )
     return templates.TemplateResponse(request, "_job.html", {"job_id": jid, "status": "queued"})
 
 
@@ -53,20 +90,19 @@ async def identifier_upload(request: Request, mgf_file: UploadFile) -> HTMLRespo
 async def identifier_status(request: Request, job_id: str) -> HTMLResponse:
     sm = get_sessionmaker()
     async with sm() as session:
-        job = (
-            await session.execute(select(IdentifierJob).where(IdentifierJob.id == job_id))
-        ).scalar_one_or_none()
+        job = await session.get(IdentifierJob, job_id)
     status = job.status if job else "unknown"
-    return templates.TemplateResponse(request, "_job.html", {"job_id": job_id, "status": status})
+    error = job.error if job else None
+    return templates.TemplateResponse(
+        request, "_job.html", {"job_id": job_id, "status": status, "error": error}
+    )
 
 
 @router.get("/identifier/{job_id}/download")
 async def identifier_download(job_id: str) -> FileResponse:
     sm = get_sessionmaker()
     async with sm() as session:
-        job = (
-            await session.execute(select(IdentifierJob).where(IdentifierJob.id == job_id))
-        ).scalar_one_or_none()
+        job = await session.get(IdentifierJob, job_id)
     if (
         not job
         or job.status != "done"

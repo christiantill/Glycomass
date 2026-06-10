@@ -2,16 +2,22 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import StaticPool
 
 from glycomass.config import get_settings
 
+_engine: AsyncEngine | None = None
 _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
-def make_sessionmaker(url: str) -> async_sessionmaker[AsyncSession]:
-    """Build an async sessionmaker bound to a fresh engine for ``url``.
+def _create_engine(url: str) -> AsyncEngine:
+    """Create an async engine for ``url``.
 
     In-memory SQLite needs a single shared connection (``StaticPool``) so that the
     schema created on one connection is visible to every session — otherwise each
@@ -19,22 +25,45 @@ def make_sessionmaker(url: str) -> async_sessionmaker[AsyncSession]:
     Postgres use the default pool.
     """
     if ":memory:" in url:
-        engine = create_async_engine(
+        return create_async_engine(
             url,
             future=True,
             poolclass=StaticPool,
             connect_args={"check_same_thread": False},
         )
-    else:
-        engine = create_async_engine(url, future=True)
-    return async_sessionmaker(engine, expire_on_commit=False)
+    return create_async_engine(url, future=True)
+
+
+def make_engine_and_sessionmaker(
+    url: str,
+) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    """Build a fresh engine + sessionmaker for ``url``.
+
+    Returning the engine gives callers (notably tests) a documented handle for
+    ``create_all``/``dispose`` instead of reaching into ``sessionmaker.kw['bind']``.
+    """
+    engine = _create_engine(url)
+    return engine, async_sessionmaker(engine, expire_on_commit=False)
+
+
+def make_sessionmaker(url: str) -> async_sessionmaker[AsyncSession]:
+    return make_engine_and_sessionmaker(url)[1]
 
 
 def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
-    global _sessionmaker
+    global _engine, _sessionmaker
     if _sessionmaker is None:
-        _sessionmaker = make_sessionmaker(get_settings().database_url)
+        _engine, _sessionmaker = make_engine_and_sessionmaker(get_settings().database_url)
     return _sessionmaker
+
+
+async def dispose_engine() -> None:
+    """Dispose the cached engine (call on app shutdown) and reset the cache."""
+    global _engine, _sessionmaker
+    if _engine is not None:
+        await _engine.dispose()
+    _engine = None
+    _sessionmaker = None
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
