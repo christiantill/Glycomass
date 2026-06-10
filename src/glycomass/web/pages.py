@@ -6,23 +6,32 @@ from typing import Any
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from starlette.concurrency import run_in_threadpool
 
 from glycomass.core import NegativeIonSodiumError
 from glycomass.db.models import Permalink
 from glycomass.db.session import get_sessionmaker
+from glycomass.logging_config import get_logger
 from glycomass.web.permalinks import DEFAULTS, TEMPLATES, compute_result, save_permalink
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 router = APIRouter()
+logger = get_logger(__name__)
 
 
 async def _try_save(kind: str, inputs: dict[str, Any]) -> str | None:
-    """Persist a permalink best-effort; never let a DB problem break the calculation."""
+    """Persist a permalink best-effort; never let a DB problem break the calculation.
+
+    The ``except`` is intentionally broad: the calculation is the primary feature and must
+    succeed even if persistence is misconfigured/down. Failures are logged (not silent) so
+    an ongoing persistence outage is observable rather than masked.
+    """
     try:
         sm = get_sessionmaker()
         async with sm() as session:
             return await save_permalink(session, kind, inputs)
     except Exception:
+        logger.warning("permalink_save_failed", kind=kind, exc_info=True)
         return None
 
 
@@ -62,7 +71,7 @@ async def peptide_result(
         "sequence": sequence, "hex": hex, "hexnac": hexnac, "fuc": fuc, "sia": sia,
         "charge": charge, "carbamidomethyl": carbamidomethyl, "deamidation": deamidation,
     }
-    result = compute_result("peptide", inputs)
+    result = await run_in_threadpool(compute_result, "peptide", inputs)
     slug = await _try_save("peptide", inputs)
     return templates.TemplateResponse(request, "_result.html", {"result": result, "slug": slug})
 
@@ -86,7 +95,7 @@ async def protein_result(
         "disulfide_bridges": disulfide_bridges, "resolution": resolution,
     }
     try:
-        result = compute_result("protein", inputs)
+        result = await run_in_threadpool(compute_result, "protein", inputs)
     except KeyError:
         return templates.TemplateResponse(
             request, "_error.html", {"message": f"Unknown resolution: {resolution}"}
@@ -111,7 +120,7 @@ async def glycan_result(
         "charge": charge, "sodium": sodium, "modification": modification,
     }
     try:
-        result = compute_result("glycan", inputs)
+        result = await run_in_threadpool(compute_result, "glycan", inputs)
     except NegativeIonSodiumError as exc:
         return templates.TemplateResponse(request, "_error.html", {"message": str(exc)})
     slug = await _try_save("glycan", inputs)
@@ -125,5 +134,5 @@ async def shared(request: Request, slug: str) -> HTMLResponse:
         row = await session.get(Permalink, slug)
     if row is None:
         return templates.TemplateResponse(request, "_not_found.html", {}, status_code=404)
-    result = compute_result(row.kind, row.inputs)
+    result = await run_in_threadpool(compute_result, row.kind, row.inputs)
     return _page(request, row.kind, inputs=row.inputs, result=result, slug=slug)
