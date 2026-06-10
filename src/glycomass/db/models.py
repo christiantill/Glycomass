@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
+from typing import Any
 
-from sqlalchemy import DateTime, String, Text
+from sqlalchemy import JSON, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from glycomass.db.base import Base
@@ -30,3 +31,12 @@ class IdentifierJob(Base):
     updated_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), default=_now, onupdate=_now
     )
+
+
+class Permalink(Base):
+    __tablename__ = "permalinks"
+
+    slug: Mapped[str] = mapped_column(String(16), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16))  # peptide|protein|glycan
+    inputs: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
