@@ -23,3 +23,15 @@ function drawSpectra(root) {
 
 document.addEventListener("DOMContentLoaded", () => drawSpectra(document));
 document.body.addEventListener("htmx:afterSwap", (e) => drawSpectra(e.target));
+
+// Copy a permalink to the clipboard (progressive enhancement; the anchor still works).
+document.body.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-copy]");
+  if (!btn || !navigator.clipboard) return;
+  const url = new URL(btn.getAttribute("data-copy"), location.origin).href;
+  navigator.clipboard.writeText(url).then(() => {
+    const prev = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = prev; }, 1500);
+  });
+});
