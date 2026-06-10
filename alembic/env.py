@@ -10,6 +10,18 @@ from glycomass.db.base import Base
 target_metadata = Base.metadata
 
 
+def run_migrations_offline() -> None:
+    """Emit migration SQL without a DB connection (`alembic upgrade head --sql`)."""
+    context.configure(
+        url=get_settings().database_url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
 def _run_migrations(connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
@@ -27,4 +39,7 @@ def run_migrations_online() -> None:
     asyncio.run(_run_async())
 
 
-run_migrations_online()
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
