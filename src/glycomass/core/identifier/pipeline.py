@@ -58,6 +58,11 @@ def find_pep_hexnac_mz(mz: np.ndarray, intensity: np.ndarray) -> float | None:
     NOTE: the legacy script selected the lower peak (then subtracted another HexNAc) — an
     apparent double-count bug. We select the higher peak (the Pep+HexNAc fragment). No
     ground truth exists for the identifier; this is the scientifically-intended behavior.
+
+    KNOWN LIMITATION: in a HexNAc ladder (Pep, Pep+HexNAc, Pep+2HexNAc — all 203 apart),
+    Pep+2HexNAc is also a valid "higher peak of a 203-pair" and, if more intense, would be
+    chosen, overestimating the peptide mass by one HexNAc. We keep the most-intense rule
+    (most confident peak) pending real spectra to validate a ladder-aware heuristic.
     """
     diff = mz[:, None] - mz[None, :]  # diff[j,k] = mz[j] - mz[k]
     higher_idx, _lower_idx = np.where((diff > HEXNAC_DIFF[0]) & (diff < HEXNAC_DIFF[1]))

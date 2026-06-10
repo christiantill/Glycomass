@@ -10,9 +10,9 @@ def test_is_glycopeptide_detects_oxonium():
 
 
 def test_find_pep_hexnac_mz_picks_higher_peak_of_hexnac_pair():
-    mz = np.array([400.0, 800.0, 1003.0866])
+    mz = np.array([400.0, 800.0, 1003.0794])
     inten = np.array([10.0, 50.0, 90.0])
-    assert abs(P.find_pep_hexnac_mz(mz, inten) - 1003.0866) < 1e-3
+    assert abs(P.find_pep_hexnac_mz(mz, inten) - 1003.0794) < 1e-3
 
 
 def test_find_pep_hexnac_mz_none_when_no_pair():
@@ -22,7 +22,15 @@ def test_find_pep_hexnac_mz_none_when_no_pair():
 
 
 def test_peptide_mass_subtracts_one_hexnac():
-    assert abs(P.peptide_mass_from_fragment(1003.0866) - 800.0) < 1e-6
+    assert abs(P.peptide_mass_from_fragment(1003.0794) - 800.0) < 1e-6
+
+
+def test_precursor_neutral_mass_formula():
+    # Retained for legacy parity (not wired into output); pin the formula so the
+    # constant + helper aren't silently broken: mz*z - z*proton + proton.
+    from glycomass.core.identifier.constants import PROTON
+
+    assert abs(P.precursor_neutral_mass(401.0, 2) - (401.0 * 2 - 2 * PROTON + PROTON)) < 1e-9
 
 
 def test_filter_spectrum_zeros_oxonium_and_above_peptide():
