@@ -105,3 +105,9 @@ framework-free domain core in `src/glycomass/core/`:
 - `worker/` — `arq` task `identifier_task` → `run_identifier_job` (process MGF, update job row; `tasks.py` is arq-independent and unit-tested directly).
 - `web/identifier.py` — `/identifier` upload (enforces `max_upload_bytes`, streams to disk) → enqueue; `/identifier/{id}` HTMX-polls status; `/identifier/{id}/download`.
 - Local infra: `docker compose -f docker-compose.dev.yml up -d` (Postgres+Redis); `uv run alembic upgrade head`; `uv run arq glycomass.worker.settings.WorkerSettings` (worker); `uv run glycomass-api` (web). Tests run on aiosqlite + a synchronous arq stub (no Redis needed); the Postgres+Redis+arq path is validated by the integration smoke.
+
+### Phase 4 — shareable permalinks (`src/glycomass/web/permalinks.py`, `db.Permalink`)
+- Every successful HTML calculation auto-saves its normalized inputs under a deterministic 12-char slug (`compute_slug` = SHA-256 of `{kind, normalized inputs}`); identical calcs dedupe to one row. Saving is best-effort — a DB failure never breaks the calculation (`pages._try_save`).
+- `GET /c/{slug}` loads the row, **re-computes** the result (always fresh — so shared links stay correct even after a chemistry fix like the HexNAc correction) and renders the calc template with the form prefilled (`pages.shared`). Unknown slug → `_not_found.html` (404).
+- The 3 calc templates are input-aware (driven by an `inputs` dict; `_result.html` shows the share link when `slug` is set). The calc page POST handlers are now `async`. The JSON API is unchanged.
+- DB: `db.Permalink` (slug PK, kind, inputs JSON, created_at); Alembic `0002_permalinks`. Web tests share a DB-backed `client` fixture in `tests/web/conftest.py`.
