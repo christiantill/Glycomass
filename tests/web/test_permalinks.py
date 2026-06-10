@@ -49,3 +49,38 @@ async def test_save_permalink_dedupes():
             assert count == 1
     finally:
         await engine.dispose()
+
+
+# --- route tests (use the DB-backed `client` fixture from tests/web/conftest.py) ---
+
+
+def test_permalink_roundtrip_prefills_and_recomputes(client):
+    import re
+
+    r = client.post("/glycan", data={"hex": 5, "hexnac": 4, "fuc": 1, "sia": 2, "charge": 1})
+    assert r.status_code == 200
+    m = re.search(r"/c/([0-9a-f]{12})", r.text)
+    assert m, r.text
+    slug = m.group(1)
+
+    page = client.get(f"/c/{slug}")
+    assert page.status_code == 200
+    assert 'value="5"' in page.text and 'value="1"' in page.text  # prefilled (hex=5, fuc=1)
+    assert "2369.8482" in page.text  # recomputed result shown
+    assert "data-spectrum" in page.text  # spectrum rendered server-side
+
+
+def test_unknown_slug_renders_404(client):
+    r = client.get("/c/deadbeef0000")
+    assert r.status_code == 404
+    assert "not found" in r.text.lower()
+
+
+def test_repeat_calc_is_same_link(client):
+    import re
+
+    a = client.post("/peptide", data={"sequence": "PEPTIDE", "charge": 1})
+    b = client.post("/peptide", data={"sequence": "peptide", "charge": 1})  # case-insensitive
+    pa = re.search(r"/c/([0-9a-f]{12})", a.text).group(1)
+    pb = re.search(r"/c/([0-9a-f]{12})", b.text).group(1)
+    assert pa == pb

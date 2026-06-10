@@ -309,3 +309,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:clamp(3rem,6vw,5rem);pad
 .spectrum{width:100%;height:240px}
 .error-note{border:1px solid var(--line-gold);border-radius:12px;padding:1rem;color:var(--gold-soft);font-size:.95rem;background:color-mix(in oklch,var(--gold) 6%,transparent)}
 .u-legend{color:var(--muted)!important}
+
+.permalink{margin-top:1.1rem;font:500 .72rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
+.permalink a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line-gold);padding-bottom:2px}
+.permalink a:hover{color:var(--gold-soft)}
