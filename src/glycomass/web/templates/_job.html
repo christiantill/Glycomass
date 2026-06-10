@@ -6,6 +6,8 @@
 {% elif status == "done" %}
 <div class="result-readout"><div><div class="k">Status</div><div class="v">done</div></div></div>
 <a class="btn btn-primary" href="/identifier/{{ job_id }}/download">Download cleaned MGF</a>
+{% elif status == "failed" %}
+<div class="error-note">Processing failed: {{ error or "internal error" }}</div>
 {% else %}
-<div class="error-note">Job {{ status }}. Please try another file.</div>
+<div class="error-note">Job not found.</div>
 {% endif %}

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import json
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -34,6 +36,10 @@ async def run_identifier_job(
             job.status = "done"
             job.result_path = result_path
             job.summary = json.dumps(summary)
+            # The cleaned result supersedes the source upload; drop it to bound disk
+            # growth (result retention/TTL is a separate follow-up).
+            with contextlib.suppress(OSError):
+                Path(job.upload_path).unlink(missing_ok=True)
         except Exception as exc:  # noqa: BLE001 - record any failure on the row
             job.status = "failed"
             job.error = f"{type(exc).__name__}: {exc}"
