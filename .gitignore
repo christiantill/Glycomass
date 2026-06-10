@@ -20,3 +20,6 @@ htmlcov/
 
 # runtime data dirs (Phase 3 uploads/results)
 data/
+
+# alembic default dev sqlite db
+glycomass.db
