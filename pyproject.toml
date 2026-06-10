@@ -57,6 +57,9 @@ files = ["src/glycomass"]
 [[tool.mypy.overrides]]
 module = ["brainpy.*"]
 ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = ["pyteomics.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --cov=src/glycomass --cov-report=term-missing --cov-fail-under=80 -m 'not grid'"
