@@ -98,3 +98,10 @@ framework-free domain core in `src/glycomass/core/`:
 - `config.py` (pydantic-settings, `GLYCOMASS_*`), `logging_config.py` (structlog).
 - Static design system in `web/static/css/app.css` (ported from `design/glycomass-landing.html`); HTMX + uPlot vendored under `web/static/vendor/`.
 - Run locally: `uv run glycomass-api` → http://localhost:8000 (`/docs` for the API).
+
+### Phase 3 — glycopeptide identifier (`src/glycomass/core/identifier/`, `db/`, `worker/`, `web/identifier.py`)
+- `core/identifier/pipeline.py` — pure MGF logic: classify glycopeptide spectra (oxonium windows), find the Pep+HexNAc fragment (NOTE: corrected vs the legacy *lower*-peak double-count bug — selects the higher peak of a HexNAc-separated pair, m/z > 700), peptide mass = fragment − 203.0866, strip glycan/oxonium peaks, rewrite each precursor to (peptide_mass, charge 1). **No legacy ground truth exists for the identifier** — tested structurally on `tests/identifier/sample.mgf`.
+- `db/` — async SQLAlchemy `IdentifierJob` (Postgres prod / aiosqlite tests); `make_sessionmaker` uses `StaticPool` for in-memory SQLite. Alembic config in `alembic/` + `alembic.ini`.
+- `worker/` — `arq` task `identifier_task` → `run_identifier_job` (process MGF, update job row; `tasks.py` is arq-independent and unit-tested directly).
+- `web/identifier.py` — `/identifier` upload (enforces `max_upload_bytes`, streams to disk) → enqueue; `/identifier/{id}` HTMX-polls status; `/identifier/{id}/download`.
+- Local infra: `docker compose -f docker-compose.dev.yml up -d` (Postgres+Redis); `uv run alembic upgrade head`; `uv run arq glycomass.worker.settings.WorkerSettings` (worker); `uv run glycomass-api` (web). Tests run on aiosqlite + a synchronous arq stub (no Redis needed); the Postgres+Redis+arq path is validated by the integration smoke.
