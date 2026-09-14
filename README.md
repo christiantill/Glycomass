@@ -1,66 +1,48 @@
 # Glycomass
 
 Calculate theoretical masses and isotope spectra for glycans, glycopeptides, and
-glycoproteins, and process MGF files with a glycopeptide identifier.
+glycoproteins, and identify glycopeptide spectra in MGF files.
 
-The live service at https://glycomass.com runs from `src/glycomass/`: Python 3.14,
-FastAPI, Jinja2/HTMX, uPlot, PostgreSQL, and an arq worker backed by Redis.
-The former Flask application in `app/` is retained as a legacy reference.
+**[Open Glycomass](https://glycomass.com)** ·
+[API documentation](https://glycomass.com/docs) ·
+[Report a problem](https://github.com/christiantill/Glycomass/issues)
+
+## Calculators
+
+| Tool | Inputs |
+| --- | --- |
+| [Glycan](https://glycomass.com/glycan) | Monosaccharide composition, modifications, and charge |
+| [Glycopeptide](https://glycomass.com/peptide) | Peptide sequence, glycan composition, and charge |
+| [Glycoprotein](https://glycomass.com/protein) | Protein sequence, glycan composition, modifications, and resolution |
+
+View monoisotopic and most-abundant m/z, explore the isotope profile or individual
+peaks, and copy or download the peak table. Saved calculation links let you share
+your inputs. The [glycopeptide identifier](https://glycomass.com/identifier)
+processes uploaded MGF files and provides a downloadable result.
+
+These are theoretical calculations. See the [engine notes](docs/engine.md) for
+model assumptions, validation scope, and known limitations.
 
 ## Cite Glycomass
 
-If you use Glycomass calculations, spectra, or identifier results in a paper,
-preprint, thesis, or other research output, please cite the software and state the
-version or commit used. For the hosted service, also record the access date.
+If you use Glycomass in a paper, preprint, thesis, or other research output,
+please cite the software and state the version or commit used. For the hosted
+service, also record your access date.
 
-**Bärenfänger, Melissa, and Till, Christian. Glycomass [Computer software].
-https://github.com/christiantill/Glycomass**
+> Bärenfänger, Melissa, and Till, Christian. *Glycomass* [Computer software].
+> https://github.com/christiantill/Glycomass
 
-Machine-readable metadata is in [CITATION.cff](CITATION.cff).
+Citation metadata is available in [CITATION.cff](CITATION.cff) and through GitHub's
+**Cite this repository** button.
 Melissa Bärenfänger: [ORCID 0000-0002-2855-924X](https://orcid.org/0000-0002-2855-924X).
-A software release DOI can be added after archival; none is assigned here yet.
 
-## Run locally
+## Development and self-hosting
 
-Install [uv](https://docs.astral.sh/uv/) and a C compiler (brainpy builds from
-source), then:
-
-```sh
-uv sync --frozen --extra dev
-cp .env.example .env
-docker compose -f docker-compose.dev.yml up -d
-uv run alembic upgrade head
-uv run glycomass-api
-```
-
-In a second terminal, run `uv run arq glycomass.worker.settings.WorkerSettings`.
-Open http://localhost:8000; API documentation is at http://localhost:8000/docs.
-The Docker Compose file and example credentials are for local development only.
-
-## Checks
-
-```sh
-uv run ruff check
-uv run mypy
-uv lock --check
-uv run pytest
-uv run pytest -m grid --no-cov
-```
-
-The calculators are checked against legacy numerical fixtures. The identifier
-has structural tests and intentional corrections to the legacy research script;
-it has no validated legacy numerical ground truth.
-
-## Documentation
-
-- [Contributor instructions](CLAUDE.md)
-- [Engine behavior and scientific follow-ups](docs/engine.md)
-- [Performance logs and measurements](docs/performance.md)
-- [Deployment and operations](deploy/README.md)
-- [Public release checklist](docs/release.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, tests, and contribution
+guidance, or the [deployment guide](deploy/README.md) to run your own instance.
 
 ## License
 
-Glycomass is licensed under the [Apache License 2.0](LICENSE), permitting commercial
-use, modification, and redistribution subject to its notice requirements.
-Academic citation is requested. Vendored dependencies retain their own licenses.
+Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for
+attributions and the [vendored-library notices](src/glycomass/web/static/vendor/README.md)
+for third-party licenses.
