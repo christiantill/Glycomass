@@ -49,4 +49,5 @@ def glycan_mass(
         most_abundant_mz=round(iso.most_abundant_mz, 4),
         composition=comp.formula(),
         spectrum=iso.spectrum,
+        profile=iso.profile,
     )

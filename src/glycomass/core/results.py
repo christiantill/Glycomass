@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Spectrum(BaseModel):
-    """Isotope-peak stick spectrum (intensity normalized to 100)."""
+    """Spectrum samples with relative intensity normalized to 100."""
 
     mz: list[float]
     intensity: list[float]
@@ -14,4 +14,7 @@ class MassResult(BaseModel):
     mono_mz: float
     most_abundant_mz: float
     composition: str
-    spectrum: Spectrum
+    spectrum: Spectrum = Field(description="Discrete theoretical isotope peaks.")
+    profile: Spectrum | None = Field(
+        default=None, description="Gaussian display profile; min/max downsampled to at most 12,000 points. Not raw acquisition data."
+    )

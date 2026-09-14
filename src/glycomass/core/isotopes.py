@@ -17,6 +17,7 @@ class IsotopeResult:
     mono_mz: float
     most_abundant_mz: float
     spectrum: Spectrum
+    profile: Spectrum
 
 
 def isotope_profile(
@@ -30,7 +31,7 @@ def isotope_profile(
     """Theoretical isotope distribution for an elemental composition.
 
     Returns mono m/z (lightest peak), most-abundant m/z (grid argmax of a Gaussian
-    profile, matching the deployed code), and a compact stick Spectrum normalized to 100.
+    profile, matching the deployed code), a compact stick spectrum, and a bounded Gaussian display profile, both normalized to 100.
     `mz_shift` adds to mono and most-abundant m/z (e.g. sodium adduct).
     """
     with measure("isotopes.variants", requested_peaks=npeaks):
@@ -56,4 +57,33 @@ def isotope_profile(
         mz=[float(mz) + mz_shift for mz in peak_mz],
         intensity=[float(i) / norm * 100 for i in peak_int],
     )
-    return IsotopeResult(mono_mz, most_abundant_mz, spectrum)
+    return IsotopeResult(
+        mono_mz, most_abundant_mz, spectrum, _display_profile(grid, profile, mz_shift)
+    )
+
+
+def _display_profile(grid: np.ndarray, values: np.ndarray, shift: float) -> Spectrum:
+    """Bound display payloads while retaining bin extrema and the full-grid maximum.
+
+    Scientific scalar results above always use the full original grid. Reduction
+    only affects the rendered curve, not isotope centers or reported masses.
+    """
+    limit = 12000
+    if len(grid) <= limit:
+        selected = np.arange(len(grid))
+    else:
+        bins = (limit - 2) // 2
+        width = (len(grid) + bins - 1) // bins
+        count = len(grid) // width
+        blocks = values[:count * width].reshape(count, width)
+        offsets = np.arange(count) * width
+        indices = [offsets + blocks.argmin(axis=1), offsets + blocks.argmax(axis=1),
+                   np.array([0, len(grid) - 1])]
+        tail = count * width
+        if tail < len(grid):
+            indices.append(np.array([tail + values[tail:].argmin(), tail + values[tail:].argmax()]))
+        selected = np.unique(np.concatenate(indices))
+    return Spectrum(
+        mz=(grid[selected] + shift).tolist(),
+        intensity=(values[selected] / values.max() * 100).tolist(),
+    )

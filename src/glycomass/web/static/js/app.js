@@ -1,25 +1,94 @@
+// Separate baseline-to-peak paths: never interpolate between isotope intensities.
+function isotopeStickPaths(plot, seriesIndex, first, last) {
+  const stroke = new Path2D();
+  const baseline = plot.valToPos(0, "y", true);
+  for (let index = first; index <= last; index++) {
+    const intensity = plot.data[seriesIndex][index];
+    if (intensity == null) continue;
+    const x = plot.valToPos(plot.data[0][index], "x", true);
+    const y = plot.valToPos(intensity, "y", true);
+    stroke.moveTo(x, baseline);
+    stroke.lineTo(x, y);
+  }
+  return { stroke, fill: null };
+}
+
+const spectrumCharts = new WeakMap();
 function drawSpectra(root) {
   root.querySelectorAll("[data-spectrum]").forEach((el) => {
-    if (el.dataset.drawn) return;
-    el.dataset.drawn = "1";
+    if (spectrumCharts.has(el)) return;
     const data = JSON.parse(el.getAttribute("data-spectrum"));
-    const mz = data.mz, inten = data.intensity;
+    const peaks = data.mz.map((mz, index) => [mz, data.intensity[index]])
+      .sort((a, b) => a[0] - b[0]);
+    const profile = el.hasAttribute("data-profile") ? JSON.parse(el.dataset.profile) : null;
+    const initial = profile || { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
     const opts = {
       width: el.clientWidth || 600,
-      height: 240,
-      scales: { x: { time: false } },
+      height: 280,
+      scales: {
+        x: { time: false, range: (_, min, max) => {
+          const padding = Math.max((max - min) * 0.05, 0.05);
+          return [min - padding, max + padding];
+        } },
+        y: { range: [0, 105] },
+      },
       axes: [
-        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "m/z" },
-        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "rel. intensity" },
+        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "m/z", space: 85 },
+        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "Relative intensity (%)" },
       ],
       series: [
-        {},
-        { stroke: "#FFD009", width: 2, fill: "rgba(255,208,9,0.15)", points: { show: true, size: 5 } },
+        { label: "m/z", value: (_, value) => value == null ? "—" : value.toFixed(4) },
+        {
+          label: "Intensity", stroke: "#FFD009", width: 1.5,
+          paths: profile ? uPlot.paths.linear() : isotopeStickPaths, fill: null, points: { show: false },
+          value: (_, value) => value == null ? "—" : value.toFixed(2) + "%",
+        },
       ],
     };
-    new uPlot(opts, [mz, inten], el);
+    const chart = new uPlot(opts, [initial.mz, initial.intensity], el);
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.floor(entry.contentRect.width);
+      if (width > 0 && width !== chart.width) chart.setSize({ width, height: 280 });
+    });
+    observer.observe(el);
+    spectrumCharts.set(el, { chart, observer, profile, peaks });
+    el.dataset.drawn = "1";
   });
 }
+
+document.body.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-spectrum-mode]");
+  if (!button) return;
+  const widget = button.closest(".spectrum-widget");
+  const el = widget.querySelector("[data-spectrum]");
+  const entry = spectrumCharts.get(el);
+  if (!entry) return;
+  const profileMode = button.dataset.spectrumMode === "profile";
+  if (profileMode && !entry.profile) return;
+  entry.chart.series[1].paths = profileMode ? uPlot.paths.linear() : isotopeStickPaths;
+  entry.chart.setData(profileMode
+    ? [entry.profile.mz, entry.profile.intensity]
+    : [entry.peaks.map(p => p[0]), entry.peaks.map(p => p[1])]);
+  widget.querySelectorAll("[data-spectrum-mode]").forEach(control => {
+    control.setAttribute("aria-pressed", String(control === button));
+  });
+  el.setAttribute("aria-label", "Theoretical isotope " + (profileMode ? "Gaussian profile" : "stick spectrum") +
+    ". Horizontal axis: m/z. Vertical axis: relative intensity, normalized to 100 percent.");
+});
+
+// HTMX replaces result fragments; release canvas listeners and resize observers.
+document.body.addEventListener("htmx:beforeCleanupElement", (event) => {
+  const el = event.detail.elt;
+  const charts = [...(el.querySelectorAll?.("[data-spectrum]") || [])];
+  if (el.matches?.("[data-spectrum]")) charts.push(el);
+  charts.forEach(node => {
+    const entry = spectrumCharts.get(node);
+    if (!entry) return;
+    entry.observer.disconnect();
+    entry.chart.destroy();
+    spectrumCharts.delete(node);
+  });
+});
 
 document.addEventListener("DOMContentLoaded", () => drawSpectra(document));
 document.body.addEventListener("htmx:afterSwap", (e) => drawSpectra(e.target));
