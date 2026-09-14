@@ -16,28 +16,33 @@
   Docker network `kamal`, with persistent host storage and no published ports.
 - Image `ghcr.io/christiantill/glycomass:aa07bec9a6e7e5208064ceef6ccce8dbcbeab31d`
   was built from the committed rewrite; registry package remains private.
-- Until DNS is ready, `glycomass-preview-web` listens only on host loopback
-  `127.0.0.1:18000`; `glycomass-preview-worker` processes its jobs. Both mount
-  `/var/lib/glycomass/files`, using a root-readable environment file outside Git.
+- Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
+  through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
+  environment files outside Git. Temporary preview containers were removed.
 - End-to-end synthetic smoke covers health, citation, all calculators, saved
   permalinks, Redis queue, worker processing, and result download. Proxy scheme
   handling was checked so static asset links use HTTPS behind the TLS proxy.
 
-## DNS and completion
+## DNS and HTTPS validation
 
-The owner selected `staging.glycomass.com`. Last DNS check returned NXDOMAIN.
-Add an A record `staging` → `62.83.18.172`. No apex/www record changes are needed.
-The public staging endpoint and TLS certificate are pending this record.
+The owner added the Namecheap A record `staging` → `62.83.18.172`.
+Public DNS and the server resolver return the new IP. Some resolvers initially
+retained the earlier NXDOMAIN response; no apex/www records were changed.
 
-Once DNS resolves:
+The deployment completed through Kamal using image revision
+`aa07bec9a6e7e5208064ceef6ccce8dbcbeab31d`. HTTPS serves a valid certificate for
+the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
+renewal. HTTP redirects to HTTPS.
 
-1. Stop/remove the two `glycomass-preview-*` containers (preserve accessories and
-   all data directories), so only the Kamal-managed worker consumes the queue.
-2. Supply deployment settings and secrets as described in `deploy/README.md`.
-3. Run `kamal deploy --skip-push --version aa07bec9a6e7e5208064ceef6ccce8dbcbeab31d`
-   for the existing image, or build/deploy a newer reviewed revision.
-4. Run `python3 deploy/smoke.py https://staging.glycomass.com` and verify restart
-   persistence before production cutover.
+The complete synthetic smoke passed through HTTPS from the deployment machine,
+using an IP resolution override while preserving hostname/SNI and certificate
+verification to bypass its stale DNS cache. Server-side HTTPS health also passed
+with normal DNS. CSS and chart JavaScript returned successfully. A saved
+permalink survived a web/worker restart.
+
+For future deployments, supply settings/secrets as described in `deploy/README.md`,
+run `kamal deploy`, then run
+`python3 deploy/smoke.py https://staging.glycomass.com`.
 
 No live-domain cutover, repository visibility change, result-retention job,
 off-server backup schedule, or deployment CI has been enabled.
