@@ -330,3 +330,14 @@ footer{border-top:1px solid var(--line-soft);margin-top:clamp(3rem,6vw,5rem);pad
 .permalink a:hover{color:var(--gold-soft)}
 .permalink-copy{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);font:inherit;padding:.32rem .6rem;cursor:pointer;transition:color .18s ease,border-color .18s ease}
 .permalink-copy:hover{border-color:var(--line-gold);color:var(--gold)}
+
+/* Keep isotope plots within their grid cell as the viewport changes. */
+.result-panel,.spectrum{min-width:0}
+.spectrum{width:100%}
+.spectrum-caption{font-size:.8rem;color:var(--muted);margin:1.1rem 0 .5rem}
+
+.spectrum-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.spectrum-header .spectrum-caption{margin:0}
+.spectrum-modes{display:flex;gap:.2rem;padding:.2rem;border:1px solid var(--line);border-radius:10px}
+.spectrum-modes button{min-height:36px;padding:.4rem .75rem;border:0;border-radius:7px;background:transparent;color:var(--muted);font:500 .75rem var(--font-sans);cursor:pointer}
+.spectrum-modes button[aria-pressed="true"]{background:var(--line-soft);color:var(--gold)}
