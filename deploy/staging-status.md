@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:43667a6ab89377f73d144f5f426422332e120390`
+- Image `ghcr.io/christiantill/glycomass:e214631ba76225961cb6ae08a668e9b37e56b9de`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`43667a6ab89377f73d144f5f426422332e120390`. HTTPS serves a valid certificate for
+`e214631ba76225961cb6ae08a668e9b37e56b9de`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -135,3 +135,21 @@ into a disposable database: 21 permalinks and nine job records were recovered,
 and the test database was removed. The archive is readable and checksummed.
 This is a one-off local backup, not an automated or cloud backup service. Cloud
 storage and recurring backup infrastructure were deferred at the owner's request.
+
+## Label redraw correction and live-domain preparation
+
+Revision `e214631` includes the label redraw correction: toggling annotations no
+longer rebuilds chart paths or repeatedly adds x-axis padding. Staging browser
+checks verify unchanged x limits after six toggles at a zoomed range; all three
+calculators, table exports and the complete HTTPS smoke pass.
+
+The proxy now accepts glycomass.com, www.glycomass.com and staging.glycomass.com
+for the same application. Use all three comma-separated names in
+GLYCOMASS_DEPLOY_DOMAIN on subsequent deployments to retain these routes. Staging
+is an alias of this application, not an isolated preview environment.
+
+Live DNS has not been changed. Existing public DNS answers were saved outside
+Git; exact Namecheap @/www record values are still needed for rollback. Zoho MX
+records are present and must be preserved. Certificates for the live hostnames
+can be issued/verified once DNS directs their challenges to netcup; staging TLS
+is already verified. Heroku remains available for rollback.
