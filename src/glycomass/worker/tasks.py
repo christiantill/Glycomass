@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from glycomass.config import get_settings
 from glycomass.db.models import IdentifierJob
 from glycomass.db.session import get_sessionmaker
+from glycomass.performance import measure
 
 
 async def run_identifier_job(
@@ -33,7 +34,8 @@ async def run_identifier_job(
         try:
             settings.result_dir.mkdir(parents=True, exist_ok=True)
             result_path = str(settings.result_dir / f"{job_id}.mgf")
-            summary = await process_mgf(job.upload_path, result_path)
+            with measure("identifier.job", job_id=job_id):
+                summary = await process_mgf(job.upload_path, result_path)
             job.status = "done"
             job.result_path = result_path
             job.summary = json.dumps(summary)
@@ -55,6 +57,9 @@ async def process_mgf(upload_path: str, result_path: str) -> dict[str, object]:
     )
     try:
         stdout, stderr = await process.communicate()
+        if stderr:
+            # Child timings use stderr; stdout remains the JSON result protocol.
+            sys.stderr.write(stderr.decode(errors="replace"))
         if process.returncode:
             raise RuntimeError(stderr.decode(errors="replace")[-2000:])
         summary: dict[str, object] = json.loads(stdout)
