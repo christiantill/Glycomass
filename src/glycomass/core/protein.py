@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from glycomass.core import constants as K
+from glycomass.core.errors import GlycomassError
 from glycomass.core.isotopes import isotope_profile
 from glycomass.core.results import MassResult
 
@@ -22,6 +23,8 @@ def protein_mass(
     resolution: str = "medium",
 ) -> MassResult:
     sigma = _RESOLUTION_SIGMA[resolution]  # KeyError on unknown resolution
+    if not 0 <= disulfide_bridges <= sequence.upper().count("C") // 2:
+        raise GlycomassError("Disulfide bridges must be nonnegative and require two cysteines each.")
     comp = K.WATER
     for aa in sequence.upper():
         if aa in K.AMINO_ACIDS:

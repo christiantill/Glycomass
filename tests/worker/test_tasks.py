@@ -75,3 +75,73 @@ async def test_run_identifier_job_records_failure(tmp_path, monkeypatch):
             assert failed.result_path is None
     finally:
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_commit_failure_retains_input_for_retry(tmp_path, monkeypatch):
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from glycomass.config import get_settings
+
+    monkeypatch.setenv("GLYCOMASS_RESULT_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    upload = tmp_path / "in.mgf"
+    shutil.copy(_SAMPLE, upload)
+    engine, sm = await _make_db()
+    try:
+        async with sm() as session:
+            job = IdentifierJob(upload_path=str(upload))
+            session.add(job)
+            await session.commit()
+            jid = job.id
+
+        original = AsyncSession.commit
+        commits = 0
+
+        async def fail_final_commit(self):
+            nonlocal commits
+            commits += 1
+            if commits == 2:
+                raise RuntimeError("database unavailable")
+            await original(self)
+
+        monkeypatch.setattr(AsyncSession, "commit", fail_final_commit)
+        with pytest.raises(RuntimeError, match="database unavailable"):
+            await run_identifier_job(jid, sessionmaker=sm)
+        assert upload.exists()
+        async with sm() as session:
+            assert (await session.get(IdentifierJob, jid)).status == "running"
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_processing_leaves_event_loop_responsive_and_reaps_cancelled_child(monkeypatch):
+    import asyncio
+    import sys
+
+    from glycomass.worker.tasks import process_mgf
+
+    original = asyncio.create_subprocess_exec
+    started = asyncio.Event()
+    children = []
+
+    async def slow_child(*args, **kwargs):
+        child = await original(sys.executable, "-c", "import time; time.sleep(60)", **kwargs)
+        children.append(child)
+        started.set()
+        return child
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", slow_child)
+    task = asyncio.create_task(process_mgf("unused", "unused"))
+    try:
+        await asyncio.wait_for(started.wait(), timeout=5)
+        heartbeat = asyncio.Event()
+        asyncio.get_running_loop().call_later(0.02, heartbeat.set)
+        await asyncio.wait_for(heartbeat.wait(), timeout=1)
+        assert not task.done()
+    finally:
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, timeout=5)
+    assert children[0].returncode is not None

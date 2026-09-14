@@ -4,15 +4,16 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
 
 from glycomass.core import NegativeIonSodiumError
+from glycomass.core.errors import GlycomassError
 from glycomass.db.models import Permalink
 from glycomass.db.session import get_sessionmaker
 from glycomass.logging_config import get_logger
-from glycomass.web.permalinks import DEFAULTS, TEMPLATES, compute_result, save_permalink
+from glycomass.web.permalinks import TEMPLATES, compute_result, normalize, save_permalink
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 router = APIRouter()
@@ -46,7 +47,7 @@ def _page(
     return templates.TemplateResponse(
         request,
         TEMPLATES[kind],
-        {"inputs": inputs or DEFAULTS[kind], "result": result, "slug": slug},
+        {"inputs": normalize(kind, inputs or {}), "result": result, "slug": slug},
     )
 
 
@@ -101,6 +102,8 @@ async def protein_result(
     }
     try:
         result = await run_in_threadpool(compute_result, "protein", inputs)
+    except GlycomassError as exc:
+        return templates.TemplateResponse(request, "_error.html", {"message": str(exc)})
     except KeyError:
         return templates.TemplateResponse(
             request, "_error.html", {"message": f"Unknown resolution: {resolution}"}
@@ -139,5 +142,24 @@ async def shared(request: Request, slug: str) -> HTMLResponse:
         row = await session.get(Permalink, slug)
     if row is None:
         return templates.TemplateResponse(request, "_not_found.html", {}, status_code=404)
-    result = await run_in_threadpool(compute_result, row.kind, row.inputs)
+    try:
+        result = await run_in_threadpool(compute_result, row.kind, row.inputs)
+    except GlycomassError as exc:
+        return templates.TemplateResponse(
+            request, "_error.html", {"message": str(exc)}, status_code=422
+        )
     return _page(request, row.kind, inputs=row.inputs, result=result, slug=slug)
+
+
+@router.get("/peptide_calculate")
+@router.get("/protein_calculate")
+@router.get("/glycan_calculate")
+@router.get("/glycan_identifier")
+def legacy_page(request: Request) -> RedirectResponse:
+    destinations = {
+        "/peptide_calculate": "/peptide",
+        "/protein_calculate": "/protein",
+        "/glycan_calculate": "/glycan",
+        "/glycan_identifier": "/identifier",
+    }
+    return RedirectResponse(destinations[request.url.path], status_code=308)

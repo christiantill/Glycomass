@@ -64,9 +64,20 @@ def find_pep_hexnac_mz(mz: np.ndarray, intensity: np.ndarray) -> float | None:
     chosen, overestimating the peptide mass by one HexNAc. We keep the most-intense rule
     (most confident peak) pending real spectra to validate a ladder-aware heuristic.
     """
-    diff = mz[:, None] - mz[None, :]  # diff[j,k] = mz[j] - mz[k]
-    higher_idx, _lower_idx = np.where((diff > HEXNAC_DIFF[0]) & (diff < HEXNAC_DIFF[1]))
-    cand = np.unique(higher_idx[mz[higher_idx] > MIN_FRAGMENT_MZ])
+    # Binary-search the first lower peak with difference < the strict upper bound.
+    # Subtract in the same direction as the original pairwise comparison so rounded
+    # endpoints keep identical behavior. Memory is O(n), including for dense spectra.
+    sorted_mz = np.sort(mz)
+    left = np.zeros(mz.size, dtype=np.intp)
+    right = np.full(mz.size, mz.size, dtype=np.intp)
+    while np.any(left < right):
+        active = np.flatnonzero(left < right)
+        mid = (left[active] + right[active]) // 2
+        inside = mz[active] - sorted_mz[mid] < HEXNAC_DIFF[1]
+        right[active[inside]] = mid[inside]
+        left[active[~inside]] = mid[~inside] + 1
+    cand = np.flatnonzero((left < mz.size) & (mz > MIN_FRAGMENT_MZ))
+    cand = cand[mz[cand] - sorted_mz[left[cand]] > HEXNAC_DIFF[0]]
     if cand.size == 0:
         return None
     best = cand[int(np.argmax(intensity[cand]))]

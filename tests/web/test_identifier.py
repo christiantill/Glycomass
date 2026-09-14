@@ -129,3 +129,52 @@ def test_oversized_upload_rejected_before_processing(monkeypatch):
         r = c.post("/identifier", files={"mgf_file": ("big.mgf", b"x" * 5000, "text/plain")})
     assert r.status_code == 413
     assert "maximum upload size" in r.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("declared_length", [None, b"1"])
+async def test_streamed_upload_is_bounded_and_parser_closes_files(monkeypatch, declared_length):
+    from starlette import formparsers
+
+    from glycomass.config import get_settings
+
+    monkeypatch.setenv("GLYCOMASS_MAX_UPLOAD_BYTES", "200")
+    get_settings.cache_clear()
+    opened = []
+    original = formparsers.SpooledTemporaryFile
+
+    def track_file(*args, **kwargs):
+        file = original(*args, **kwargs)
+        opened.append(file)
+        return file
+
+    monkeypatch.setattr(formparsers, "SpooledTemporaryFile", track_file)
+    chunks = iter([
+        b'--boundary\r\nContent-Disposition: form-data; name="mgf_file"; filename="s.mgf"\r\n'
+        b'Content-Type: text/plain\r\n\r\n',
+        b'x' * 150,
+        b'--boundary--\r\n',
+    ])
+    reads = 0
+
+    async def receive():
+        nonlocal reads
+        reads += 1
+        return {"type": "http.request", "body": next(chunks), "more_body": True}
+
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    headers = [(b"content-type", b"multipart/form-data; boundary=boundary")]
+    if declared_length is not None:
+        headers.append((b"content-length", declared_length))
+    await create_app()({
+        "type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
+        "method": "POST", "scheme": "http", "path": "/identifier",
+        "query_string": b"", "headers": headers,
+    }, receive, send)
+    assert sent[0]["status"] == 413
+    assert reads == 2  # do not consume the rest of the oversized stream
+    assert opened and all(file.closed for file in opened)

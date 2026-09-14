@@ -7,6 +7,7 @@ from glycomass.core import (
     peptide_mass,
     protein_mass,
 )
+from glycomass.core.errors import GlycomassError
 from glycomass.schemas import GlycanRequest, PeptideRequest, ProteinRequest
 
 router = APIRouter(prefix="/api/v1", tags=["calculate"])
@@ -33,6 +34,8 @@ def calculate_protein(req: ProteinRequest) -> MassResult:
             charge=req.charge, deamidation=req.deamidation,
             disulfide_bridges=req.disulfide_bridges, resolution=req.resolution,
         )
+    except GlycomassError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except KeyError as exc:
         raise HTTPException(status_code=422, detail=f"Unknown resolution: {req.resolution}") from exc
 

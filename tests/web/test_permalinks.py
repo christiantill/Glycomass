@@ -107,3 +107,15 @@ def test_calc_still_works_when_save_fails(client, monkeypatch):
     assert r.status_code == 200
     assert "2369.8482" in r.text  # calc succeeded
     assert "/c/" not in r.text  # save failed -> no share link
+
+
+def test_peracetyl_aliases_share_slug_and_roundtrip_selection(client):
+    import re
+
+    assert P.compute_slug("glycan", {"modification": "Peracetyl"}) == P.compute_slug(
+        "glycan", {"modification": "Peracetly"}
+    )
+    response = client.post("/glycan", data={"hex": 5, "hexnac": 4, "modification": "Peracetyl"})
+    slug = re.search(r"/c/([0-9a-f]{12})", response.text).group(1)
+    page = client.get(f"/c/{slug}")
+    assert "<option selected>Peracetly</option>" in page.text
