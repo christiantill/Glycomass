@@ -4,6 +4,7 @@ message: >-
   please cite this software and include the version or commit used. For the
   hosted service, also record the access date.
 type: software
+license: Apache-2.0
 title: Glycomass
 authors:
   - family-names: Bärenfänger
