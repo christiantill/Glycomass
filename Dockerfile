@@ -12,6 +12,8 @@ COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
 
 FROM python:3.14-slim-bookworm AS runtime
+LABEL org.opencontainers.image.source="https://github.com/christiantill/Glycomass"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
 RUN groupadd --gid 10001 glycomass && useradd --uid 10001 --gid glycomass --no-create-home glycomass \
     && mkdir -p /data/uploads /data/results && chown -R glycomass:glycomass /data
 WORKDIR /app

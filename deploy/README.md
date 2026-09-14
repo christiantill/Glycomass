@@ -85,7 +85,8 @@ HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
   were explicitly deferred by the owner for this hobby deployment. Data created
   since that backup can be lost; this is not recurring recovery protection.
   Back up both the database and shared files before risky changes.
-- Deployments are manual. Merging a PR does not deploy it.
+- Application/deployment changes merged to `master` deploy through GitHub Actions
+  after tests pass. Documentation-only changes skip deployment.
 - Roll back application releases with Kamal; Heroku is no longer available.
 
 Kamal application rollback changes the image; it does not undo migrations or
@@ -117,3 +118,41 @@ Namecheap manages the live domain. The current web records are:
 
 Kamal manages HTTPS certificates for all three hostnames. Preserve Zoho MX and
 mail/verification TXT records when changing web DNS.
+
+## Automatic deployment
+
+`.github/workflows/ci-deploy.yml` tests every PR without deployment credentials.
+Application/deployment changes pushed to `master` run the same checks, then Kamal
+builds and deploys that tested commit. Only one master workflow runs at a time;
+running deployments are not cancelled by newer pushes. Superseded revisions are
+skipped before deployment setup. Do not run manual Kamal deployments concurrently
+with Actions; they use the same service and deployment lock.
+
+GitHub Actions → **Test and deploy** → **Run workflow** on `master` also runs tests
+and deploys, even without code changes. Selecting another branch never deploys.
+Kamal switches web traffic after its health check passes; a final read-only HTTPS
+check verifies the public endpoint. Failures appear in Actions. This is not an
+automatic database rollback or a full live worker smoke test.
+
+Repository Actions secrets:
+
+- `DEPLOY_SSH_KEY`: dedicated deployment private key authorized on the server.
+- `DEPLOY_KNOWN_HOSTS`: verified server SSH host-key entry.
+- `POSTGRES_PASSWORD`: existing production database password.
+- `GLYCOMASS_DATABASE_URL`: existing production database URL.
+
+GHCR authentication uses the workflow's temporary `GITHUB_TOKEN` with package
+write access. The `glycomass` package must grant this repository Actions access.
+Never use `pull_request_target` to execute untrusted PR code with these secrets.
+
+## Another app on the same server
+
+Keep the Dockerfile, `config/deploy.yml`, secrets, and workflow in that app's own
+repository. Choose a unique Kamal service name and image, a separate hostname,
+and separate database credentials and storage paths. Point its DNS to the same
+server; the existing Kamal proxy handles domain routing and HTTPS for each app.
+Do not copy Glycomass's database URL, file volume, or hostnames into another app.
+
+There is no shared package to publish. Reuse this small configuration as a
+starting point and maintain it per app. Apps share host resources and the Docker
+network; this is suitable for the owner's trusted apps, not untrusted tenants.
