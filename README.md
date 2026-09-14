@@ -55,7 +55,7 @@ it has no validated legacy numerical ground truth.
 
 See [public release preparation](docs/03_specs/public-release-preparation.md)
 for remaining credential cleanup, licensing decisions, and hosting work.
-The [Hetzner deployment guide](deploy/README.md) covers the Docker/Kamal setup.
+The [VPS deployment guide](deploy/README.md) covers the Docker/Kamal setup on netcup.
 Glycomass is licensed under the [Apache License 2.0](LICENSE), permitting commercial
 use, modification, and redistribution subject to its notice requirements.
 Academic citation is requested. Vendored dependencies retain their own licenses.

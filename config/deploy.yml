@@ -16,8 +16,11 @@ servers:
 
 proxy:
   ssl: true
+  forward_headers: true
   host: <%= ENV.fetch("GLYCOMASS_DEPLOY_DOMAIN") %>
   app_port: 8000
+  buffering:
+    max_request_body: 262144000
   healthcheck:
     path: /api/v1/health
     interval: 3
