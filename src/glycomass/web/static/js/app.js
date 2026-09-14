@@ -21,7 +21,7 @@ function drawSpectra(root) {
     const peaks = data.mz.map((mz, index) => [mz, data.intensity[index]])
       .sort((a, b) => a[0] - b[0]);
     const profile = el.hasAttribute("data-profile") ? JSON.parse(el.dataset.profile) : null;
-    const initial = profile || { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
+    const initial = { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
     const opts = {
       width: el.clientWidth || 600,
       height: 280,
@@ -40,7 +40,7 @@ function drawSpectra(root) {
         { label: "m/z", value: (_, value) => value == null ? "—" : value.toFixed(4) },
         {
           label: "Intensity", stroke: "#FFD009", width: 1.5,
-          paths: profile ? uPlot.paths.linear() : isotopeStickPaths, fill: null, points: { show: false },
+          paths: isotopeStickPaths, fill: null, points: { show: false },
           value: (_, value) => value == null ? "—" : value.toFixed(2) + "%",
         },
       ],
@@ -113,4 +113,19 @@ document.body.addEventListener("htmx:beforeSwap", (event) => {
     detail.shouldSwap = true;
     detail.isError = false;
   }
+});
+
+// Acknowledge submission immediately, including while the response is downloading.
+document.body.addEventListener("htmx:beforeRequest", (event) => {
+  const form = event.detail.elt;
+  if (!form.matches?.(".calc-form")) return;
+  form.setAttribute("aria-busy", "true");
+  form.querySelector(".calculation-status").textContent = "Calculating…";
+});
+document.body.addEventListener("htmx:afterRequest", (event) => {
+  const form = event.detail.elt;
+  if (!form.matches?.(".calc-form")) return;
+  form.setAttribute("aria-busy", "false");
+  form.querySelector(".calculation-status").textContent = event.detail.successful
+    ? "Calculation complete." : "Calculation failed. Check your inputs or connection and try again.";
 });

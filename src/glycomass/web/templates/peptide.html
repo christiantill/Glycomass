@@ -4,7 +4,7 @@
 <span class="eyebrow">Calculator</span>
 <h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--step-3);color:var(--paper);margin:.6rem 0 1.6rem">Glycopeptide</h1>
 <div class="calc-shell">
-  <form class="calc-form" hx-post="/peptide" hx-target="#result" hx-swap="innerHTML">
+  <form class="calc-form" hx-post="/peptide" hx-target="#result" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]" hx-sync="this:drop" aria-busy="false">
     <div><label for="peptide-sequence">Peptide sequence</label><input id="peptide-sequence" type="text" name="sequence" maxlength="100" value="{{ inputs.sequence }}"></div>
     <div class="calc-grid">
       <div><label for="peptide-hex">Hex</label><input id="peptide-hex" type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
@@ -17,7 +17,8 @@
     <label for="peptide-carbamidomethyl" style="display:flex;gap:.5rem;align-items:center;text-transform:none;letter-spacing:0">
       <input id="peptide-carbamidomethyl" type="checkbox" name="carbamidomethyl" value="true" style="width:auto" {% if inputs.carbamidomethyl %}checked{% endif %}> Carbamidomethyl (Cys)
     </label>
-    <button class="btn btn-primary" type="submit">Calculate</button>
+    <button class="btn btn-primary" type="submit"><span class="calculate-idle">Calculate</span><span class="calculate-busy" aria-hidden="true">Calculating…</span></button>
+    <p class="calculation-status" role="status" aria-live="polite"></p>
   </form>
   <div id="result" class="result-panel">{% if result %}{% include "_result.html" %}{% else %}<p style="color:var(--muted)">Enter a peptide and calculate.</p>{% endif %}</div>
 </div>

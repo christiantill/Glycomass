@@ -4,7 +4,7 @@
 <span class="eyebrow">Calculator</span>
 <h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--step-3);color:var(--paper);margin:.6rem 0 1.6rem">Glycoprotein</h1>
 <div class="calc-shell">
-  <form class="calc-form" hx-post="/protein" hx-target="#result" hx-swap="innerHTML">
+  <form class="calc-form" hx-post="/protein" hx-target="#result" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]" hx-sync="this:drop" aria-busy="false">
     <div><label for="protein-sequence">Protein sequence</label><input id="protein-sequence" type="text" name="sequence" maxlength="100000" value="{{ inputs.sequence }}"></div>
     <div class="calc-grid">
       <div><label for="protein-hex">Hex</label><input id="protein-hex" type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
@@ -20,7 +20,8 @@
         <option {% if inputs.resolution == 'super high' %}selected{% endif %}>super high</option>
       </select></div>
     </div>
-    <button class="btn btn-primary" type="submit">Calculate</button>
+    <button class="btn btn-primary" type="submit"><span class="calculate-idle">Calculate</span><span class="calculate-busy" aria-hidden="true">Calculating…</span></button>
+    <p class="calculation-status" role="status" aria-live="polite"></p>
   </form>
   <div id="result" class="result-panel">{% if result %}{% include "_result.html" %}{% else %}<p style="color:var(--muted)">Enter a protein and calculate.</p>{% endif %}</div>
 </div>
