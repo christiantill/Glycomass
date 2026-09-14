@@ -47,7 +47,7 @@ def _page(
     return templates.TemplateResponse(
         request,
         TEMPLATES[kind],
-        {"inputs": normalize(kind, inputs or {}), "result": result, "slug": slug},
+        {"inputs": normalize(kind, inputs or {}), "result": result, "slug": slug, "active_tool": kind},
     )
 
 
