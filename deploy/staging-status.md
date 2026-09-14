@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:400483540785ed169d32214d13c23bf7bf144ff2`
+- Image `ghcr.io/christiantill/glycomass:cced5085252ce5af4ad2e389c5370583dec79bf0`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`400483540785ed169d32214d13c23bf7bf144ff2`. HTTPS serves a valid certificate for
+`cced5085252ce5af4ad2e389c5370583dec79bf0`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -86,3 +86,14 @@ switching, repeat submissions and mobile resizing. The server-side HTTPS smoke
 passed for calculators, saved results and queued identifier processing. See
 `docs/03_specs/engine-reference-audit.md` for the separate repository comparison
 and inherited engine behaviors that still need scientific/input validation.
+
+## Spectrum transfer and progress correction
+
+Revision `cced508` defaults to zero-baseline sticks and adds immediate calculation
+status with duplicate-submit protection. Rounded HTML profile data and gzip
+reduced the default glycan transfer from 464,868 to 35,035 bytes. A measured
+staging request completed in 0.55 seconds versus 12.05 seconds before this fix
+(network timings are observations, not a latency guarantee). Staging Chromium
+checks verified actual peak/gap pixels, progress while a response is delayed,
+button recovery, toggles, repeated calculation and mobile layout. HTTPS smoke
+passed again. Changed asset URLs are versioned for normal reloads.
