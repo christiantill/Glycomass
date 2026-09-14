@@ -29,7 +29,7 @@
   `tests/test_peptide.py`, `tests/test_protein.py`, `tests/test_glycan.py`,
   `tests/test_golden.py` (new).
 
-> **Import note:** legacy `glycomass.py` (root) shares the package name. The `src/` layout + `--import-mode=importlib` + editable install make `import glycomass` resolve to `src/glycomass`, not the root module. Legacy `app/` and `glycomass.py` are removed at Phase 5 cutover.
+> **Import note:** the retained WSGI entry point is now `legacy_glycomass.py`, so it cannot shadow the installed `src/glycomass` package when Python starts from the repository root.
 
 ---
 

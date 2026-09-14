@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
 
@@ -162,12 +162,19 @@ async def shared(request: Request, slug: str) -> HTMLResponse:
     return _page(request, row.kind, inputs=row.inputs, result=result, slug=slug)
 
 
+@router.get("/sitemap.xml", include_in_schema=False)
+def sitemap() -> FileResponse:
+    return FileResponse(Path(__file__).parent / "static" / "sitemap.xml", media_type="application/xml")
+
+
+@router.get("/index")
 @router.get("/peptide_calculate")
 @router.get("/protein_calculate")
 @router.get("/glycan_calculate")
 @router.get("/glycan_identifier")
 def legacy_page(request: Request) -> RedirectResponse:
     destinations = {
+        "/index": "/",
         "/peptide_calculate": "/peptide",
         "/protein_calculate": "/protein",
         "/glycan_calculate": "/glycan",

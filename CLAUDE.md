@@ -60,11 +60,11 @@ may break the list/array arithmetic in `masscalc.py`.
 
 ```bash
 pip install -r requirements.txt        # needs `git` on PATH: brainpy installs from a pinned git commit
-FLASK_APP=glycomass.py flask run       # local dev server
-gunicorn glycomass:app                 # production process (this is the entire Procfile)
+FLASK_APP=legacy_glycomass.py flask run       # local dev server
+gunicorn legacy_glycomass:app                 # production process (this is the entire Procfile)
 ```
 
-- **WSGI entry point** is `glycomass:app` — i.e. the module-level `app` from `app/__init__.py`, **not** `create_app()`.
+- **WSGI entry point** is `legacy_glycomass:app` — i.e. the module-level `app` from `app/__init__.py`, **not** `create_app()`.
 - **No test suite, linter config, or build step exists.** There is no npm/webpack — all frontend assets come from Flask-Bootstrap (Bootstrap 3) or CDNs.
 - **Headless deploy needs `MPLBACKEND=Agg`** — the code never calls `matplotlib.use('Agg')`, so a server worker can fail or leak figures without it.
 - Env vars: `SECRET_KEY`, `LOG_TO_STDOUT`, `S3_BUCKET`/`S3_KEY`/`S3_SECRET`, and for Redis `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD` (note: `config.py`'s `REDIS_URL` is defined but **nothing reads it** — `redis_resc.py` uses its own host/port/password vars).
@@ -104,7 +104,7 @@ The heavy compute (`masscalc`) is **never offloaded to a queue**; it runs inline
 
 ### Dead / scratch code (ignore unless explicitly cleaning up)
 
-Treat the following as orphaned — none is reachable from `glycomass:app`. Don't use them as references; several are stale and chemically inconsistent with production.
+Treat the following as orphaned — none is reachable from `legacy_glycomass:app`. Don't use them as references; several are stale and chemically inconsistent with production.
 
 - `proteincalc_temp.py` (repo root): scratch prototype of `proteinmass` with a hardcoded peptide; `print()`/`plt.show()` instead of returning; its deamidation vector has the *opposite sign* of `masscalc.py` and it has a list-vs-array multiplication bug.
 - `app/firstpart_glycopeptide_identifier.py`: an offline MGF-processing research script (inverse problem: spectrum → inferred peptide/glycan mass). **Runs its full pipeline on import** (no `__main__` guard), uses a hardcoded Windows path that is *both input and output* (overwrites the source), and imports `pyteomics`, which is not in `requirements.txt`. The `/glycan_identifier` route does **not** call it — it only uploads the file to S3.

@@ -202,3 +202,55 @@ async def test_cancelled_job_reaches_terminal_state_and_retains_upload(tmp_path,
         assert upload.exists()
     finally:
         await engine.dispose()
+
+
+@pytest.mark.parametrize("commit_number", [1, 2])
+async def test_cancellation_during_status_commit_reaches_terminal_state(tmp_path, monkeypatch, commit_number):
+    import asyncio
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    import glycomass.worker.tasks as tasks
+    from glycomass.config import get_settings
+
+    monkeypatch.setenv("GLYCOMASS_RESULT_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    upload = tmp_path / "in.mgf"
+    shutil.copy(_SAMPLE, upload)
+    engine, sm = await _make_db()
+    try:
+        async with sm() as session:
+            job = IdentifierJob(upload_path=str(upload))
+            session.add(job)
+            await session.commit()
+            jid = job.id
+        original_commit = AsyncSession.commit
+        entered = asyncio.Event()
+        commits = 0
+
+        async def blocked_commit(self):
+            nonlocal commits
+            commits += 1
+            if commits == commit_number:
+                await self.flush()  # also exercise rollback of an active transaction
+                entered.set()
+                await asyncio.Event().wait()
+            await original_commit(self)
+
+        async def processed(*args):
+            return {"identified": 1}
+
+        monkeypatch.setattr(AsyncSession, "commit", blocked_commit)
+        monkeypatch.setattr(tasks, "process_mgf", processed)
+        task = asyncio.create_task(run_identifier_job(jid, sessionmaker=sm))
+        await asyncio.wait_for(entered.wait(), timeout=5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, timeout=5)
+        async with sm() as session:
+            row = await session.get(IdentifierJob, jid)
+            assert row.status == "failed"
+            assert "cancelled" in row.error
+        assert upload.exists()
+    finally:
+        await engine.dispose()

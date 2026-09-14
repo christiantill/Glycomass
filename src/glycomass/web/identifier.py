@@ -136,6 +136,8 @@ async def identifier_upload(request: Request, mgf_file: UploadFile) -> HTMLRespo
                 row.status = "failed"
                 row.error = "Could not queue the job (queue unavailable)."
                 await session.commit()
+        with contextlib.suppress(OSError):
+            dest.unlink(missing_ok=True)
         return templates.TemplateResponse(
             request,
             "_error.html",

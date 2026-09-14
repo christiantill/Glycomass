@@ -53,6 +53,7 @@ def test_impossible_disulfide_count_renders_error(client):
 
 def test_legacy_bookmarks_redirect_permanently(client):
     for old, new in {
+        "/index": "/",
         "/peptide_calculate": "/peptide", "/protein_calculate": "/protein",
         "/glycan_calculate": "/glycan", "/glycan_identifier": "/identifier",
     }.items():
@@ -101,3 +102,17 @@ def test_sequence_validation_is_shared_by_html_and_api(client):
         assert api.json() == expected.json()
         html = client.post('/' + kind, data={"sequence": raw})
         assert html.status_code == 200 and 'data-spectrum=' in html.text
+
+
+def test_sitemap_lists_current_public_routes(client):
+    from xml.etree import ElementTree
+
+    response = client.get("/sitemap.xml")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/xml")
+    root = ElementTree.fromstring(response.text)
+    urls = [node.text for node in root.findall("{*}url/{*}loc")]
+    assert "https://glycomass.com/" in urls
+    assert "https://glycomass.com/glycan" in urls
+    for url in urls:
+        assert client.get(url.replace("https://glycomass.com", "")).status_code == 200

@@ -1,1 +1,1 @@
-web: gunicorn glycomass:app
+web: gunicorn legacy_glycomass:app
