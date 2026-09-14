@@ -40,3 +40,14 @@ test('only the requested visible peak range is drawn', () => {
 test('HTMX cleanup tolerates text nodes', () => {
   assert.doesNotThrow(() => handlers['htmx:beforeCleanupElement']({detail:{elt:{nodeType:3}}}));
 });
+
+
+test('table exports retain every discrete peak with the displayed precision', () => {
+  assert.equal(context.peakTableText([[800.367234,100],[801.37,0.001]], ','),
+    'Peak,m/z,Relative intensity (%)\r\n1,800.3672,100.00\r\n2,801.3700,0.00\r\n');
+});
+
+test('profile labels use local maxima, not every sample', () => {
+  assert.equal(JSON.stringify(context.profileMaxima({mz:[1,2,3,4,5],intensity:[0,100,0,50,0]})),
+    JSON.stringify([[2,100],[4,50]]));
+});

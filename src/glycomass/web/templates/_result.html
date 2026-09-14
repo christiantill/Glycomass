@@ -13,8 +13,33 @@
     </div>
     {% endif %}
   </div>
+  <div class="spectrum-tools">
+    <button type="button" data-spectrum-action="labels" aria-pressed="true" hidden>Show labels</button>
+    <button type="button" data-spectrum-action="reset" hidden>Reset zoom</button>
+    <span>Drag across the plot to zoom.</span>
+  </div>
   <div role="img" aria-label="Theoretical isotope {% if result.profile %}Gaussian profile{% else %}stick spectrum{% endif %}. Horizontal axis: m/z. Vertical axis: relative intensity, normalized to 100 percent." class="spectrum"
        data-spectrum='{{ result.spectrum.model_dump()|tojson }}'{% if result.profile %} data-profile='{{ result.profile|display_profile|tojson }}'{% endif %}></div>
+  <details class="peak-data">
+    <summary>Isotope peak data <span>{{ result.spectrum.mz|length }} peaks</span></summary>
+    <p>Discrete isotope peaks; intensities are relative to the strongest isotope peak. Peaks below 1% are initially hidden. Profile labels mark maxima of the broadened curve.</p>
+    <div class="peak-data-actions">
+      <button type="button" data-spectrum-action="all" aria-expanded="false" hidden>Show all peaks</button>
+      <button type="button" data-spectrum-action="copy" hidden>Copy table</button>
+      <button type="button" data-spectrum-action="csv" hidden>Download CSV</button>
+    </div>
+    <p class="peak-export-status" role="status" aria-live="polite"></p>
+    <div class="peak-table-scroll" tabindex="0" role="region" aria-label="Isotope peak values">
+      <table class="peak-table">
+        <caption>Isotope peaks (copy and CSV include all peaks)</caption>
+        <thead><tr><th scope="col">Peak</th><th scope="col">m/z</th><th scope="col">Relative intensity (%)</th></tr></thead>
+        <tbody>{% for mz in result.spectrum.mz %}
+          {% set intensity = result.spectrum.intensity[loop.index0] %}
+          <tr{% if intensity < 1 %} data-minor-peak{% endif %}><th scope="row">{{ loop.index }}</th><td>{{ "%.4f"|format(mz) }}</td><td>{{ "%.2f"|format(intensity) }}</td></tr>
+        {% endfor %}</tbody>
+      </table>
+    </div>
+  </details>
 </div>
 {% if slug %}
 <div class="permalink">

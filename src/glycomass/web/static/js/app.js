@@ -1,3 +1,35 @@
+// Label visible maxima, prioritizing stronger peaks and rejecting overlapping boxes.
+function spectrumLabelLayout(plot, samples) {
+  const ratio = window.devicePixelRatio || 1;
+  const ctx = plot.ctx;
+  ctx.font = `${11 * ratio}px sans-serif`;
+  const boxes = [];
+  for (const [mz, intensity] of [...samples].sort((a,b) => b[1]-a[1])) {
+    if (intensity < 1 || mz < plot.scales.x.min || mz > plot.scales.x.max) continue;
+    const text = mz.toFixed(4);
+    const width = ctx.measureText(text).width + 8 * ratio;
+    const height = 17 * ratio;
+    const x = plot.valToPos(mz, "x", true) - width/2;
+    const y = plot.valToPos(intensity, "y", true) - height - 4 * ratio;
+    if (x < plot.bbox.left || x+width > plot.bbox.left+plot.bbox.width || y < plot.bbox.top) continue;
+    if (boxes.some(b => x < b.x+b.width+4*ratio && x+width+4*ratio > b.x && y < b.y+b.height+3*ratio && y+height+3*ratio > b.y)) continue;
+    boxes.push({x,y,width,height,text,mz,intensity});
+  }
+  return boxes;
+}
+
+function profileMaxima(profile) {
+  return profile.mz.flatMap((mz,i) => i > 0 && i < profile.mz.length-1 &&
+    profile.intensity[i] > profile.intensity[i-1] && profile.intensity[i] >= profile.intensity[i+1]
+    ? [[mz,profile.intensity[i]]] : []);
+}
+
+function peakTableText(peaks, separator = "\t") {
+  return [["Peak", "m/z", "Relative intensity (%)"],
+    ...peaks.map(([mz,intensity],i) => [i+1,mz.toFixed(4),intensity.toFixed(2)])]
+    .map(row => row.join(separator)).join("\r\n") + "\r\n";
+}
+
 // Separate baseline-to-peak paths: never interpolate between isotope intensities.
 function isotopeStickPaths(plot, seriesIndex, first, last) {
   const stroke = new Path2D();
@@ -22,6 +54,7 @@ function drawSpectra(root) {
       .sort((a, b) => a[0] - b[0]);
     const profile = el.hasAttribute("data-profile") ? JSON.parse(el.dataset.profile) : null;
     const initial = profile || { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
+    const state = {labels: true, mode: profile ? "profile" : "peaks", maxima: profile ? profileMaxima(profile) : peaks, labelBoxes: []};
     const opts = {
       width: el.clientWidth || 600,
       height: 280,
@@ -30,8 +63,21 @@ function drawSpectra(root) {
           const padding = Math.max((max - min) * 0.05, 0.05);
           return [min - padding, max + padding];
         } },
-        y: { range: [0, 105] },
+        y: { range: [0, 120] },
       },
+      hooks: {draw: [(plot) => {
+        plot.ctx.save();
+        state.labelBoxes = state.labels ? spectrumLabelLayout(plot, state.mode === "profile" ? state.maxima : peaks) : [];
+        plot.ctx.textAlign = "center";
+        plot.ctx.textBaseline = "middle";
+        for (const box of state.labelBoxes) {
+          plot.ctx.fillStyle = "#08142d";
+          plot.ctx.fillRect(box.x,box.y,box.width,box.height);
+          plot.ctx.fillStyle = "#dce5f7";
+          plot.ctx.fillText(box.text,box.x+box.width/2,box.y+box.height/2);
+        }
+        plot.ctx.restore();
+      }]},
       axes: [
         { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "m/z", space: 85 },
         { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "Relative intensity (%)" },
@@ -51,7 +97,10 @@ function drawSpectra(root) {
       if (width > 0 && width !== chart.width) chart.setSize({ width, height: 280 });
     });
     observer.observe(el);
-    spectrumCharts.set(el, { chart, observer, profile, peaks });
+    spectrumCharts.set(el, { chart, observer, profile, peaks, state });
+    const widget = el.closest(".spectrum-widget");
+    widget.querySelectorAll("[data-spectrum-action]").forEach(button => { button.hidden = false; });
+    widget.querySelectorAll("[data-minor-peak]").forEach(row => { row.hidden = true; });
     el.dataset.drawn = "1";
   });
 }
@@ -65,6 +114,7 @@ document.body.addEventListener("click", (event) => {
   if (!entry) return;
   const profileMode = button.dataset.spectrumMode === "profile";
   if (profileMode && !entry.profile) return;
+  entry.state.mode = profileMode ? "profile" : "peaks";
   entry.chart.series[1].paths = profileMode ? uPlot.paths.linear() : isotopeStickPaths;
   entry.chart.setData(profileMode
     ? [entry.profile.mz, entry.profile.intensity]
@@ -128,4 +178,50 @@ document.body.addEventListener("htmx:afterRequest", (event) => {
   form.setAttribute("aria-busy", "false");
   form.querySelector(".calculation-status").textContent = event.detail.successful
     ? "Calculation complete." : "Calculation failed. Check your inputs or connection and try again.";
+});
+
+document.body.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-spectrum-action]");
+  if (!button) return;
+  const widget = button.closest(".spectrum-widget");
+  const entry = spectrumCharts.get(widget.querySelector("[data-spectrum]"));
+  if (!entry) return;
+  const status = widget.querySelector(".peak-export-status");
+  switch (button.dataset.spectrumAction) {
+    case "labels":
+      entry.state.labels = !entry.state.labels;
+      button.setAttribute("aria-pressed", String(entry.state.labels));
+      entry.chart.redraw();
+      break;
+    case "reset":
+      entry.chart.setData(entry.chart.data);
+      break;
+    case "all": {
+      const show = button.getAttribute("aria-expanded") !== "true";
+      widget.querySelectorAll("[data-minor-peak]").forEach(row => { row.hidden = !show; });
+      button.setAttribute("aria-expanded", String(show));
+      button.textContent = show ? "Hide peaks below 1%" : "Show all peaks";
+      break;
+    }
+    case "copy":
+      try {
+        await navigator.clipboard.writeText(peakTableText(entry.peaks));
+        status.textContent = "Copied all isotope peaks.";
+      } catch {
+        status.textContent = "Copy unavailable. Download CSV or select the table to copy.";
+      }
+      break;
+    case "csv": {
+      const url = URL.createObjectURL(new Blob([peakTableText(entry.peaks, ",")], {type:"text/csv;charset=utf-8"}));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "glycomass-isotope-peaks.csv";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = "CSV includes all isotope peaks.";
+      break;
+    }
+  }
 });

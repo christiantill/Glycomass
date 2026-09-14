@@ -348,3 +348,19 @@ footer{border-top:1px solid var(--line-soft);margin-top:clamp(3rem,6vw,5rem);pad
 .calc-form[aria-busy="true"] .calculate-busy{display:inline}
 .calc-form button:disabled{cursor:wait;opacity:.75}
 .calculation-status{min-height:1.4em;margin:.5rem 0 0;color:var(--muted);font-size:.8rem}
+
+.spectrum-tools,.peak-data-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.8rem 0}
+.spectrum-tools span,.peak-data p{font-size:.78rem;color:var(--muted)}
+.spectrum-tools button,.peak-data-actions button{min-height:44px;padding:.45rem .7rem;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:inherit;font-size:.78rem;cursor:pointer}
+.spectrum-tools button[aria-pressed="true"]{color:var(--gold);border-color:var(--line-gold)}
+.spectrum{height:auto;min-height:280px}
+.peak-data{border-top:1px solid var(--line);margin-top:1rem;padding-top:.8rem}
+.peak-data summary{cursor:pointer;color:var(--paper);padding:.5rem 0;font-size:.9rem}
+.peak-data summary span{color:var(--muted);font-size:.75rem;margin-left:.5rem}
+.peak-table-scroll{max-height:340px;overflow:auto}
+.peak-table{width:100%;border-collapse:collapse;font: .75rem var(--font-mono);font-variant-numeric:tabular-nums}
+.peak-table caption{font: .75rem var(--font-sans);color:var(--muted);text-align:left;padding:.6rem 0}
+.peak-table th,.peak-table td{padding:.65rem .45rem;text-align:right;border-bottom:1px solid var(--line)}
+.peak-table thead th{position:sticky;top:0;background:var(--navy-950);font-family:var(--font-sans)}
+.peak-table th:first-child{text-align:left}
+.peak-export-status:empty{display:none}
