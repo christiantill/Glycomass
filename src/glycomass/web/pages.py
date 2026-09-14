@@ -10,12 +10,22 @@ from starlette.concurrency import run_in_threadpool
 
 from glycomass.core import NegativeIonSodiumError
 from glycomass.core.errors import GlycomassError
+from glycomass.core.results import Spectrum
 from glycomass.db.models import Permalink
 from glycomass.db.session import get_sessionmaker
 from glycomass.logging_config import get_logger
 from glycomass.web.permalinks import TEMPLATES, compute_result, normalize, save_permalink
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+def display_profile(spectrum: Spectrum) -> dict[str, list[float]]:
+    """Trim display-only precision; scientific/API results retain their precision."""
+    return {
+        "mz": [round(value, 6) for value in spectrum.mz],
+        "intensity": [round(value, 4) for value in spectrum.intensity],
+    }
+
+
+templates.env.filters["display_profile"] = display_profile
 router = APIRouter()
 logger = get_logger(__name__)
 

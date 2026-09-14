@@ -67,3 +67,20 @@ def test_overlong_html_sequences_return_visible_error(client):
         response = client.post('/'+kind, data={'sequence':'A'*(maximum+1)})
         assert response.status_code == 422
         assert 'error-note' in response.text
+
+
+def test_spectrum_response_is_compressed_and_defaults_to_peaks(client):
+    response = client.post('/glycan', data={'hex': 5, 'hexnac': 4, 'charge': 1},
+                           headers={'Accept-Encoding': 'gzip'})
+    assert response.headers['content-encoding'] == 'gzip'
+    assert int(response.headers['content-length']) < 50000
+    assert 'data-spectrum-mode="peaks" aria-pressed="true"' in response.text
+    assert 'data-profile=' in response.text
+
+
+def test_calculators_have_live_submission_status(client):
+    for kind in ('glycan', 'peptide', 'protein'):
+        response = client.get('/' + kind)
+        assert 'role="status"' in response.text
+        assert 'hx-disabled-elt="find button[type=submit]"' in response.text
+        assert 'aria-busy="false"' in response.text

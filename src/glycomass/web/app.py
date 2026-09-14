@@ -10,6 +10,7 @@ from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from glycomass.config import get_settings
 from glycomass.db.session import dispose_engine
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
             )
         return await request_validation_exception_handler(request, exc)
 
+    app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=3)
     app.add_middleware(UploadLimitMiddleware)
 
     app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")

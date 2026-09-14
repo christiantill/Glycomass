@@ -24,8 +24,9 @@ The rewrite returned only discrete isotope centers and joined them with a line.
 The reference plots the sampled Gaussian profile. Results now additionally expose
 `profile`, normalized to 100 and reduced to at most 12,000 samples by retaining
 bin minima/maxima and endpoints. Scalar masses still use the full original grid.
-The default display uses this profile; Peaks draws independent zero-to-intensity
-sticks. Protein resolution therefore affects the displayed profile again.
+The default display draws independent zero-to-intensity sticks; Profile is optional.
+HTML profiles round display coordinates to six decimals and relative intensities
+to four decimals, and responses use gzip to avoid excessive transfer time. Protein resolution therefore affects the displayed profile again.
 
 Validation: 146 default tests, 795 legacy scalar comparisons, three JavaScript
 regressions, and Chromium checks for all calculators, both display modes, repeated

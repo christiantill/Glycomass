@@ -8,13 +8,13 @@
     <p class="spectrum-caption">Theoretical isotope spectrum</p>
     {% if result.profile %}
     <div class="spectrum-modes" role="group" aria-label="Spectrum view">
-      <button type="button" data-spectrum-mode="profile" aria-pressed="true">Profile</button>
-      <button type="button" data-spectrum-mode="peaks" aria-pressed="false">Peaks</button>
+      <button type="button" data-spectrum-mode="profile" aria-pressed="false">Profile</button>
+      <button type="button" data-spectrum-mode="peaks" aria-pressed="true">Peaks</button>
     </div>
     {% endif %}
   </div>
-  <div role="img" aria-label="Theoretical isotope {% if result.profile %}Gaussian profile{% else %}stick spectrum{% endif %}. Horizontal axis: m/z. Vertical axis: relative intensity, normalized to 100 percent." class="spectrum"
-       data-spectrum='{{ result.spectrum.model_dump()|tojson }}'{% if result.profile %} data-profile='{{ result.profile.model_dump()|tojson }}'{% endif %}></div>
+  <div role="img" aria-label="Theoretical isotope stick spectrum. Horizontal axis: m/z. Vertical axis: relative intensity, normalized to 100 percent." class="spectrum"
+       data-spectrum='{{ result.spectrum.model_dump()|tojson }}'{% if result.profile %} data-profile='{{ result.profile|display_profile|tojson }}'{% endif %}></div>
 </div>
 {% if slug %}
 <div class="permalink">

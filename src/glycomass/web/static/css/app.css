@@ -341,3 +341,9 @@ footer{border-top:1px solid var(--line-soft);margin-top:clamp(3rem,6vw,5rem);pad
 .spectrum-modes{display:flex;gap:.2rem;padding:.2rem;border:1px solid var(--line);border-radius:10px}
 .spectrum-modes button{min-height:36px;padding:.4rem .75rem;border:0;border-radius:7px;background:transparent;color:var(--muted);font:500 .75rem var(--font-sans);cursor:pointer}
 .spectrum-modes button[aria-pressed="true"]{background:var(--line-soft);color:var(--gold)}
+
+.calculate-busy{display:none}
+.calc-form[aria-busy="true"] .calculate-idle{display:none}
+.calc-form[aria-busy="true"] .calculate-busy{display:inline}
+.calc-form button:disabled{cursor:wait;opacity:.75}
+.calculation-status{min-height:1.4em;margin:.5rem 0 0;color:var(--muted);font-size:.8rem}
