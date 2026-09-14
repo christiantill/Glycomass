@@ -14,6 +14,7 @@ from glycomass.core.identifier.constants import (
     OXONIUM_HEXNACHEX2,
     PROTON,
 )
+from glycomass.performance import measure
 
 
 @dataclass
@@ -110,23 +111,31 @@ def filter_spectrum(
 def process_mgf(in_path: str, out_path: str) -> dict[str, int | str]:
     """Read MGF, keep glycopeptide spectra, derive the deglycosylated peptide mass, strip
     glycan/oxonium peaks, rewrite each precursor to (peptide_mass, charge 1), write MGF."""
-    spectra = read_mgf(in_path)
+    with measure("identifier.read") as timing:
+        spectra = read_mgf(in_path)
+        timing["spectra"] = len(spectra)
+        timing["total_peaks"] = sum(len(s.mz) for s in spectra)
+        timing["max_spectrum_peaks"] = max((len(s.mz) for s in spectra), default=0)
     total = len(spectra)
-    glyco = [s for s in spectra if is_glycopeptide(s.mz)]
+    with measure("identifier.select", spectra=total):
+        glyco = [s for s in spectra if is_glycopeptide(s.mz)]
     cleaned: list[dict[str, object]] = []
     identified = 0
-    for s in glyco:
-        frag = find_pep_hexnac_mz(s.mz, s.intensity)
-        if frag is None:
-            continue
-        identified += 1
-        pep_mass = peptide_mass_from_fragment(frag)
-        fmz, finten = filter_spectrum(s.mz, s.intensity, peptide_mass=pep_mass)
-        new_params: dict[str, object] = {
-            k: v for k, v in s.params.items() if k not in ("com", "username")
-        }
-        new_params["pepmass"] = (pep_mass, 1)
-        new_params["charge"] = "1+"
-        cleaned.append({"m/z array": fmz, "intensity array": finten, "params": new_params})
-    mgf.write(cleaned, output=out_path)
+    with measure("identifier.match_and_filter", spectra=len(glyco),
+                 total_peaks=sum(len(s.mz) for s in glyco)):
+        for s in glyco:
+            frag = find_pep_hexnac_mz(s.mz, s.intensity)
+            if frag is None:
+                continue
+            identified += 1
+            pep_mass = peptide_mass_from_fragment(frag)
+            fmz, finten = filter_spectrum(s.mz, s.intensity, peptide_mass=pep_mass)
+            new_params: dict[str, object] = {
+                k: v for k, v in s.params.items() if k not in ("com", "username")
+            }
+            new_params["pepmass"] = (pep_mass, 1)
+            new_params["charge"] = "1+"
+            cleaned.append({"m/z array": fmz, "intensity array": finten, "params": new_params})
+    with measure("identifier.write", spectra=identified):
+        mgf.write(cleaned, output=out_path)
     return {"total": total, "glycopeptides": len(glyco), "identified": identified, "output": out_path}

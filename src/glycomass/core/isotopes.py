@@ -7,6 +7,7 @@ from brainpy import isotopic_variants
 
 from glycomass.core.composition import Composition
 from glycomass.core.results import Spectrum
+from glycomass.performance import measure
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,16 +33,20 @@ def isotope_profile(
     profile, matching the deployed code), and a compact stick Spectrum normalized to 100.
     `mz_shift` adds to mono and most-abundant m/z (e.g. sodium adduct).
     """
-    cluster = isotopic_variants(comp.to_brainpy(), npeaks=npeaks, charge=charge)
+    with measure("isotopes.variants", requested_peaks=npeaks):
+        cluster = isotopic_variants(comp.to_brainpy(), npeaks=npeaks, charge=charge)
     peak_mz = np.array([p.mz for p in cluster], dtype=float)
     peak_int = np.array([p.intensity for p in cluster], dtype=float)
 
-    # Gaussian profile over an m/z grid (step == sigma), matching app/masscalc.py.
-    grid = np.arange(peak_mz[0] - 1, peak_mz[-1] + 1, sigma)
-    profile = np.zeros_like(grid)
-    denom = np.sqrt(2 * np.pi) * sigma
-    for mz, inten in zip(peak_mz, peak_int, strict=True):
-        profile += inten * np.exp(-((grid - mz) ** 2) / (2 * sigma)) / denom
+    with measure("isotopes.gaussian", peaks=len(cluster), sigma=sigma) as timing:
+        # Gaussian profile over an m/z grid (step == sigma), matching app/masscalc.py.
+        grid = np.arange(peak_mz[0] - 1, peak_mz[-1] + 1, sigma)
+        profile = np.zeros_like(grid)
+        denom = np.sqrt(2 * np.pi) * sigma
+        for mz, inten in zip(peak_mz, peak_int, strict=True):
+            profile += inten * np.exp(-((grid - mz) ** 2) / (2 * sigma)) / denom
+        timing["grid_points"] = len(grid)
+        timing["peak_grid_evaluations"] = len(grid) * len(cluster)
 
     most_abundant_mz = float(grid[int(np.argmax(profile))]) + mz_shift
     mono_mz = float(peak_mz[0]) + mz_shift

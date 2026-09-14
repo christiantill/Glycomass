@@ -78,3 +78,9 @@ HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
 Kamal application rollback changes the image; it does not undo migrations or
 restore lost data. Keep migrations compatible with the previous image. Do not
 delete accessory storage during application rollback.
+
+## Slow-operation logs
+
+See [performance timings](../docs/03_specs/performance-observability.md) for
+algorithm costs, workload fields, thresholds, and initial measurements. Web and
+worker containers warn when an instrumented phase takes at least one second.

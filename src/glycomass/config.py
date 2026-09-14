@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_json: bool = False
     log_level: str = "INFO"
+    slow_operation_ms: float = Field(default=1000, ge=0, allow_inf_nan=False)
 
     database_url: str = "sqlite+aiosqlite:///./glycomass.db"
     redis_url: str = "redis://localhost:6379"
