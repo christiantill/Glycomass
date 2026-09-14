@@ -1,9 +1,9 @@
 # VPS deployment (netcup)
 
 The maintainer provisioned a netcup x86-64 server with 8 GB RAM and approximately
-250 GB disk, running Debian 13 minimal. Initial deployment uses
-`staging.glycomass.com`; the main domain remains on the existing service until
-cutover. Docker officially supports Debian 13. The same deployment also works on
+250 GB disk, running Debian 13 minimal. The live site now uses `glycomass.com` and `www.glycomass.com`;
+`staging.glycomass.com` is an alias of the same app, not an isolated preview.
+Heroku is retained temporarily for rollback; see [cutover record](live-cutover.md). Docker officially supports Debian 13. The same deployment also works on
 other Docker-capable VPS providers; it has no Hetzner-specific dependencies.
 
 ## Architecture
@@ -60,15 +60,15 @@ network, which must not contain untrusted workloads.
 Uvicorn trusts forwarded headers from that network so generated asset URLs use
 HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
 
-## Before production cutover
+## Operational checklist
 
 - Verify all calculators, a saved permalink after restart, and a real upload →
   worker → download flow on staging. Load-test representative MGF sizes.
 - Implement a result/upload retention policy and monitoring for disk growth;
   completed result files currently have no automatic expiry.
-- Schedule encrypted off-server PostgreSQL logical backups and file backups,
-  and restore them on a disposable database/server. Server snapshots alone are
-  not a tested database backup strategy. Permalinks need durable DB backups.
+- A one-off PostgreSQL/file backup is saved on the maintainer’s computer and
+  its database restore was tested. Recurring/cloud backups were deferred at the
+  owner’s request. Keep saved permalinks in mind when revisiting this.
 - Add deployment CI and a dedicated deploy credential after server access is
   established. This preparation does not automatically deploy on merge.
 - Before changing production DNS, record existing records, lower TTL, test TLS,
@@ -84,3 +84,10 @@ delete accessory storage during application rollback.
 See [performance timings](../docs/03_specs/performance-observability.md) for
 algorithm costs, workload fields, thresholds, and initial measurements. Web and
 worker containers warn when an instrumented phase takes at least one second.
+
+## Current live hostnames
+
+For this existing service, deploy with:
+`GLYCOMASS_DEPLOY_DOMAIN=glycomass.com,www.glycomass.com,staging.glycomass.com`.
+All three names route to the same web/worker/database deployment. Changes deployed
+here affect the live site; an isolated preview would require a separate service.

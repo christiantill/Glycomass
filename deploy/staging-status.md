@@ -44,8 +44,8 @@ For future deployments, supply settings/secrets as described in `deploy/README.m
 run `kamal deploy`, then run
 `python3 deploy/smoke.py https://staging.glycomass.com`.
 
-No live-domain cutover, repository visibility change, result-retention job,
-off-server backup schedule, or deployment CI has been enabled.
+Live-domain cutover is recorded below. Repository visibility remains private;
+result-retention jobs, scheduled off-server backups and deployment CI are not enabled.
 
 ## Review fixes deployed
 
@@ -148,8 +148,22 @@ for the same application. Use all three comma-separated names in
 GLYCOMASS_DEPLOY_DOMAIN on subsequent deployments to retain these routes. Staging
 is an alias of this application, not an isolated preview environment.
 
-Live DNS has not been changed. Existing public DNS answers were saved outside
-Git; exact Namecheap @/www record values are still needed for rollback. Zoho MX
+At preparation time, live DNS still used Heroku. Existing public DNS answers
+and the owner-provided Namecheap @/www records were saved outside Git for rollback. Zoho MX
 records are present and must be preserved. Certificates for the live hostnames
 can be issued/verified once DNS directs their challenges to netcup; staging TLS
 is already verified. Heroku remains available for rollback.
+
+## Live cutover completed — 2026-09-14
+
+Namecheap authoritative DNS now has @ A 62.83.18.172 and www CNAME glycomass.com.
+Both live names serve the netcup app with valid TLS certificates and HTTP-to-HTTPS
+redirects. Certificates initially expire 2026-12-13; Kamal manages renewal.
+Zoho MX records are unchanged. Old recursive DNS caches may temporarily retain
+the Heroku/Namecheap answers.
+
+The complete HTTPS smoke passed on https://glycomass.com, including calculators,
+saved links and queued MGF processing/download. Chromium verified the profile,
+peak labels and repeated label toggles without range drift, peak table/copy/CSV,
+loading state and mobile layout. Heroku remains running for rollback. See
+`deploy/live-cutover.md` for the exact previous web records.
