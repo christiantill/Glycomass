@@ -60,6 +60,11 @@ def peptide_page(request: Request) -> HTMLResponse:
     return _page(request, "peptide")
 
 
+@router.get("/citation", response_class=HTMLResponse)
+def citation_page(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "citation.html")
+
+
 @router.post("/peptide", response_class=HTMLResponse)
 async def peptide_result(
     request: Request,
