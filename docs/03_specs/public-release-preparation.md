@@ -1,6 +1,6 @@
 # Public release preparation
 
-Status: preparation only; repository is private. Reviewed 2026-09-14.
+Status: repository is private; branch history cleanup completed 2026-09-14.
 
 ## Completed in the rewrite PR
 
@@ -41,7 +41,21 @@ in this report. A clean current-tree scan does not clear historical exposure.
    the outstanding release decisions are resolved.
 
 Follow [GitHub's sensitive-data removal guidance](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository).
-No history rewrite, credential rotation, or visibility change has been performed.
+After the maintainer confirmed Heroku autodeploy was disabled, all four remote
+branches were replaced atomically with cleaned history using explicit commit
+leases. Five legacy credential values were removed, historical config now uses
+environment variables, and bytecode/IDE files were removed across history.
+The rewritten history passed Gitleaks and an exact search for the known values.
+The rewrite branch's latest file tree was identical before and after cleanup.
+This checkout was synchronized and its old reflogs/objects pruned.
+
+GitHub-managed PR references/cached commits are separate from branch history and
+can retain old objects. Resolve those references with GitHub Support where
+necessary before treating the entire hosted repository as clean. Credential
+rotation and repository visibility change have not been performed. A restricted
+local rollback bundle is retained outside the repository; it contains old history
+and must never be published. Other clones should be replaced or carefully cleaned
+to prevent reintroducing old commits.
 
 ## Citation and licensing
 
@@ -69,7 +83,9 @@ Separate web and worker services would need shared object storage or a different
 file-transfer design: [Render disk limitations](https://render.com/docs/disks#disk-limitations-and-considerations).
 
 Docker/Kamal configuration and a disposable local integration stack are now in
-`deploy/`; see its README. Still needed on the actual server: upload/result
+`deploy/`; see its README. The image build, Kamal 2.12.0 configuration check, and
+real PostgreSQL/Redis/worker integration smoke passed, including saved permalinks
+and upload-to-download processing. Still needed on the actual server: upload/result
 retention, backup/restore verification, TLS, and a staged domain cutover with a
 rollback path. Confirm the provider, server/account access, and current hosting
 before provisioning. The maintainer selected Hetzner/self-managed hosting.
