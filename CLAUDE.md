@@ -30,6 +30,6 @@ commands in [README.md](README.md); deployment is described in
   `tools/legacy-fixtures/` imports its calculator to reproduce fixtures. New
   features belong in `src/glycomass/`, not the legacy application.
 - Never commit credentials, runtime data, or private history backups.
-- The staging hostname currently shares the live application and database.
-  See the deployment guide before deploying; application changes merged to
+- Use local checks before deploying; there is no hosted staging environment.
+  See the deployment guide; application changes merged to
   master deploy automatically after CI passes.

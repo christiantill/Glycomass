@@ -61,7 +61,7 @@ jobs:
     env:
       GLYCOMASS_IMAGE: christiantill/glycomass
       GLYCOMASS_DEPLOY_HOST: 62.83.18.172
-      GLYCOMASS_DEPLOY_DOMAIN: glycomass.com,www.glycomass.com,staging.glycomass.com
+      GLYCOMASS_DEPLOY_DOMAIN: glycomass.com,www.glycomass.com
       KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

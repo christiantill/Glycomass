@@ -2,7 +2,7 @@
 
 The maintainer provisioned a netcup x86-64 server with 8 GB RAM and approximately
 250 GB disk, running Debian 13 minimal. The live site now uses `glycomass.com` and `www.glycomass.com`;
-`staging.glycomass.com` is an alias of the same app, not an isolated preview.
+There is no hosted staging environment; use the isolated local stack for testing.
 The former Heroku app has been deleted. The deployment can also run on other
 Docker-capable VPS providers.
 
@@ -32,7 +32,7 @@ its volumes on success or failure:
 The smoke stack uses disposable development credentials and no published ports.
 Production does not use that Compose file. The test creates permalinks, an
 identifier job, and files; removing this stack's volumes removes those artifacts.
-Do not run this write-producing test against live or shared staging without a
+Do not run this write-producing test against production without a
 separate artifact-cleanup mechanism.
 
 ## Server setup and first deployment
@@ -41,7 +41,7 @@ separate artifact-cleanup mechanism.
    to administrator addresses using the provider firewall.
 2. Create the shared file directory on the host:
    `install -d -o 10001 -g 10001 -m 0750 /var/lib/glycomass/files`.
-3. Choose a staging hostname (for example `staging.glycomass.com`) and point it
+3. Choose the application hostname and point it
    at the server. TLS needs working DNS before the deployment can finish.
 4. Install Kamal 2.12.0 (`gem install kamal -v 2.12.0`) on the deploy machine.
 5. Export these deployment settings:
@@ -102,8 +102,8 @@ worker containers warn when an instrumented phase takes at least one second.
 ## Current live hostnames
 
 For this existing service, deploy with:
-`GLYCOMASS_DEPLOY_DOMAIN=glycomass.com,www.glycomass.com,staging.glycomass.com`.
-All three names route to the same web/worker/database deployment. Changes deployed
+`GLYCOMASS_DEPLOY_DOMAIN=glycomass.com,www.glycomass.com`.
+Both names route to the same web/worker/database deployment. Changes deployed
 here affect the live site; an isolated preview would require a separate service.
 
 ## DNS
@@ -114,9 +114,8 @@ Namecheap manages the live domain. The current web records are:
 | --- | --- | --- |
 | A | @ | 62.83.18.172 |
 | CNAME | www | glycomass.com |
-| A | staging | 62.83.18.172 |
 
-Kamal manages HTTPS certificates for all three hostnames. Preserve Zoho MX and
+Kamal manages HTTPS certificates for both hostnames. Preserve Zoho MX and
 mail/verification TXT records when changing web DNS.
 
 ## Automatic deployment
@@ -156,3 +155,6 @@ Do not copy Glycomass's database URL, file volume, or hostnames into another app
 There is no shared package to publish. Reuse this small configuration as a
 starting point and maintain it per app. Apps share host resources and the Docker
 network; this is suitable for the owner's trusted apps, not untrusted tenants.
+
+The former `staging` A record should be removed from Namecheap; the deployment
+no longer routes that hostname.
