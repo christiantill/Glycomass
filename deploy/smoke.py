@@ -1,6 +1,7 @@
 """Exercise a running deployment with synthetic inputs (creates a job/permalinks).
 
-Run: python3 deploy/smoke.py https://staging.glycomass.com
+Run against the isolated Compose stack as documented in deploy/README.md.
+Live and shared staging retain test artifacts; this script does not clean them up.
 """
 
 import json
