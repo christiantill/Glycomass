@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:adcea072b73e5ee2a6e1fe3fd8703e1652f852e2`
+- Image `ghcr.io/christiantill/glycomass:f040e12c6d8a4091e502eda921d4e95baf80153f`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`adcea072b73e5ee2a6e1fe3fd8703e1652f852e2`. HTTPS serves a valid certificate for
+`f040e12c6d8a4091e502eda921d4e95baf80153f`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -114,3 +114,11 @@ clipboard TSV and CSV download. Profile remains the initial view. The staging
 browser suite passed for all calculators, including label boxes/zoom, table rows,
 clipboard contents, downloaded CSV, progress, repeat calculations and mobile
 layout. The default glycan compressed response is approximately 36 KB.
+
+## Follow-up review sequence validation
+
+Revision `f040e12` addresses the three follow-up CodeRabbit findings: obsolete
+FastAPI wording and shared normalized sequence validation at peptide/protein
+form and API boundaries. All 149 tests, Ruff and mypy pass. Staging HTTPS checks
+confirm invalid/empty sequences return 422 while formatted valid inputs succeed.
+Previously fixed Codex threads were verified, replied to and resolved as well.

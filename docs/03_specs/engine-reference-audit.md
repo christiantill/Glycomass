@@ -44,7 +44,9 @@ These are existing behaviors, not fixes available in the separate repository:
    divides by `sqrt(2*pi) * sigma` and the grid step is `sigma`. The parameter
    mixes variance and standard-deviation conventions. Define intended width or
    resolving power before changing it; this can change most-abundant m/z.
-3. **Input validation:** unknown sequence characters are silently discarded;
+3. **Input validation:** peptide/protein forms and APIs now reject unsupported or
+   empty sequences using a shared validator, accepting whitespace and lowercase.
+   Direct legacy-compatible core calls still discard unknown characters;
    unknown glycan modifications fall back to native; numeric request fields
    mostly accept unrestricted integers. Define supported residues, counts,
    deamidation bounds and charge/neutral-mass semantics, with explicit errors.
