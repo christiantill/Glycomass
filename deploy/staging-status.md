@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:fa6e167f19a4f899429f01a8f2885fe8ac13918e`
+- Image `ghcr.io/christiantill/glycomass:400483540785ed169d32214d13c23bf7bf144ff2`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`fa6e167f19a4f899429f01a8f2885fe8ac13918e`. HTTPS serves a valid certificate for
+`400483540785ed169d32214d13c23bf7bf144ff2`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -77,3 +77,12 @@ jobs as failed, cleans up failed upload persistence, rejects unrecognizable MGF
 uploads, serializes lazy Redis initialization, and fixes form error rendering and
 accessible labels. Both roles run this revision. Full HTTPS smoke and staging
 rejection checks for overlong protein sequences and empty MGF files passed.
+
+## Navigation and spectrum verification
+
+Revision `4004835` includes the calculator navigation and sampled Gaussian profile
+repair. Chromium checks passed on staging for all three calculators, Profile/Peaks
+switching, repeat submissions and mobile resizing. The server-side HTTPS smoke
+passed for calculators, saved results and queued identifier processing. See
+`docs/03_specs/engine-reference-audit.md` for the separate repository comparison
+and inherited engine behaviors that still need scientific/input validation.
