@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:4bb3087b265c7e5c6dea9d01efe222829671b821`
+- Image `ghcr.io/christiantill/glycomass:adcea072b73e5ee2a6e1fe3fd8703e1652f852e2`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`4bb3087b265c7e5c6dea9d01efe222829671b821`. HTTPS serves a valid certificate for
+`adcea072b73e5ee2a6e1fe3fd8703e1652f852e2`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -105,3 +105,12 @@ uses readable sentence-case labels and adapts narrow forms to a single column.
 Profile is the default again at the owner's request; Peaks remains available.
 Staging browser checks passed for labels at 1440/390/320px and for the initial
 Profile data, alternate peak strokes, loading status and compressed responses.
+
+## Peak annotations and data exports
+
+Revision `adcea07` adds collision-aware m/z annotations, a label toggle and zoom
+reset, plus a collapsible discrete peak table, minor-peak visibility control,
+clipboard TSV and CSV download. Profile remains the initial view. The staging
+browser suite passed for all calculators, including label boxes/zoom, table rows,
+clipboard contents, downloaded CSV, progress, repeat calculations and mobile
+layout. The default glycan compressed response is approximately 36 KB.
