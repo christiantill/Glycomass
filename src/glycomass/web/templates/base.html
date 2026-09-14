@@ -12,10 +12,11 @@
 <link rel="stylesheet" href="{{ url_for('static', path='vendor/uPlot.min.css') }}" />
 </head>
 <body>
+<a class="skip" href="#main-content">Skip to content</a>
 <svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
 <header>
   <div class="wrap">
-    <nav class="nav">
+    <nav class="nav" aria-label="Main navigation">
       <a class="brand" href="/" aria-label="GlycoMass home">
         <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
           <rect x="1" y="1" width="30" height="30" rx="9" fill="#002C73"/>
@@ -23,18 +24,40 @@
         </svg>
         Glyco<b>Mass</b>
       </a>
-      <ul class="navlinks">
-        <li><a href="/peptide">Glycopeptide</a></li>
-        <li><a href="/protein">Glycoprotein</a></li>
-        <li><a href="/glycan">Glycan</a></li>
-        <li><a href="/identifier">Identifier</a></li>
-        <li><a href="/docs">API</a></li>
-      </ul>
-      <a class="nav-cta" href="/#calculators">Open calculators</a>
+      {% set current_tool = active_tool|default(request.url.path.strip('/')) %}
+      {% set tools = [('glycan', 'Glycan', 'Composition → exact mass'), ('peptide', 'Glycopeptide', 'Sequence + glycans → mass'), ('protein', 'Glycoprotein', 'Sequence → isotope profile')] %}
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navigation-panel" hidden>
+        <span class="nav-toggle-label">Menu</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-panel" id="navigation-panel">
+        <details class="tool-switcher{% if current_tool in ['glycan', 'peptide', 'protein'] %} is-active{% endif %}">
+          <summary>
+            {% if current_tool == 'glycan' %}Glycan calculator{% elif current_tool == 'peptide' %}Glycopeptide calculator{% elif current_tool == 'protein' %}Glycoprotein calculator{% else %}Calculators{% endif %}
+            <svg class="nav-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </summary>
+          <div class="tool-menu">
+            <p class="tool-menu-heading">Choose your calculation</p>
+            <ul class="tool-list">
+              {% for key, title, description in tools %}
+              <li><a href="/{{ key }}"{% if current_tool == key %} aria-current="page"{% endif %}>
+                <span class="tool-symbol" aria-hidden="true">0{{ loop.index }}</span>
+                <span><strong>{{ title }}</strong><small>{{ description }}</small></span>
+                <span class="tool-arrow" aria-hidden="true">{% if current_tool == key %}✓{% else %}↗{% endif %}</span>
+              </a></li>
+              {% endfor %}
+            </ul>
+            <a class="all-calculators" href="/#calculators">Compare calculators <span aria-hidden="true">→</span></a>
+          </div>
+        </details>
+        <a class="nav-link" href="/identifier"{% if request.url.path.startswith('/identifier') %} aria-current="page"{% endif %}>Identifier</a>
+        <a class="nav-link" href="/docs">API docs <span class="nav-api-icon" aria-hidden="true">↗</span></a>
+        <a class="nav-link nav-cite" href="/citation"{% if request.url.path == '/citation' %} aria-current="page"{% endif %}>Cite software</a>
+      </div>
     </nav>
   </div>
 </header>
-<main class="wrap" style="padding-block:clamp(2.5rem,6vw,5rem)">
+<main id="main-content" tabindex="-1" class="wrap" style="padding-block:clamp(2.5rem,6vw,5rem)">
   {% block content %}{% endblock %}
 </main>
 <footer>
@@ -42,6 +65,7 @@
 </footer>
 <script src="{{ url_for('static', path='vendor/htmx.min.js') }}"></script>
 <script src="{{ url_for('static', path='vendor/uPlot.iife.min.js') }}"></script>
+<script src="{{ url_for('static', path='js/navigation.js') }}"></script>
 <script src="{{ url_for('static', path='js/app.js') }}"></script>
 </body>
 </html>
