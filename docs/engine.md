@@ -28,10 +28,8 @@ The default display uses the Gaussian profile; Peaks draws independent zero-to-i
 HTML profiles round display coordinates to six decimals and relative intensities
 to four decimals, and responses use gzip to avoid excessive transfer time. Protein resolution therefore affects the displayed profile again.
 
-Validation: 146 default tests, 795 legacy scalar comparisons, three JavaScript
-regressions, and Chromium checks for all calculators, both display modes, repeated
-submission, and mobile resizing. These establish legacy parity, not independent
-scientific validation of the inherited model.
+Legacy scalar fixtures and browser regressions cover the display repair. These
+establish legacy parity, not independent scientific validation of the model.
 
 ## Scientific and validation follow-ups
 

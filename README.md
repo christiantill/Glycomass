@@ -3,9 +3,9 @@
 Calculate theoretical masses and isotope spectra for glycans, glycopeptides, and
 glycoproteins, and process MGF files with a glycopeptide identifier.
 
-The 2026 rewrite lives in `src/glycomass/`: Python 3.14, FastAPI, Jinja2/HTMX,
-uPlot, PostgreSQL, and an arq worker backed by Redis. The legacy Flask app remains
-in `app/`; production deployment of the rewrite is still being prepared.
+The live service at https://glycomass.com runs from `src/glycomass/`: Python 3.14,
+FastAPI, Jinja2/HTMX, uPlot, PostgreSQL, and an arq worker backed by Redis.
+The former Flask application in `app/` is retained as a legacy reference.
 
 ## Cite Glycomass
 
@@ -51,11 +51,16 @@ The calculators are checked against legacy numerical fixtures. The identifier
 has structural tests and intentional corrections to the legacy research script;
 it has no validated legacy numerical ground truth.
 
-## Release status
+## Documentation
 
-See [public release preparation](docs/03_specs/public-release-preparation.md)
-for remaining credential cleanup, licensing decisions, and hosting work.
-The [VPS deployment guide](deploy/README.md) covers the Docker/Kamal setup on netcup.
+- [Contributor instructions](CLAUDE.md)
+- [Engine behavior and scientific follow-ups](docs/engine.md)
+- [Performance logs and measurements](docs/performance.md)
+- [Deployment and operations](deploy/README.md)
+- [Public release checklist](docs/release.md)
+
+## License
+
 Glycomass is licensed under the [Apache License 2.0](LICENSE), permitting commercial
 use, modification, and redistribution subject to its notice requirements.
 Academic citation is requested. Vendored dependencies retain their own licenses.
