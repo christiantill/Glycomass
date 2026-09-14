@@ -69,12 +69,12 @@ def test_overlong_html_sequences_return_visible_error(client):
         assert 'error-note' in response.text
 
 
-def test_spectrum_response_is_compressed_and_defaults_to_peaks(client):
+def test_spectrum_response_is_compressed_and_defaults_to_profile(client):
     response = client.post('/glycan', data={'hex': 5, 'hexnac': 4, 'charge': 1},
                            headers={'Accept-Encoding': 'gzip'})
     assert response.headers['content-encoding'] == 'gzip'
     assert int(response.headers['content-length']) < 50000
-    assert 'data-spectrum-mode="peaks" aria-pressed="true"' in response.text
+    assert 'data-spectrum-mode="profile" aria-pressed="true"' in response.text
     assert 'data-profile=' in response.text
 
 

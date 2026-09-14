@@ -21,7 +21,7 @@ function drawSpectra(root) {
     const peaks = data.mz.map((mz, index) => [mz, data.intensity[index]])
       .sort((a, b) => a[0] - b[0]);
     const profile = el.hasAttribute("data-profile") ? JSON.parse(el.dataset.profile) : null;
-    const initial = { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
+    const initial = profile || { mz: peaks.map(p => p[0]), intensity: peaks.map(p => p[1]) };
     const opts = {
       width: el.clientWidth || 600,
       height: 280,
@@ -40,7 +40,7 @@ function drawSpectra(root) {
         { label: "m/z", value: (_, value) => value == null ? "—" : value.toFixed(4) },
         {
           label: "Intensity", stroke: "#FFD009", width: 1.5,
-          paths: isotopeStickPaths, fill: null, points: { show: false },
+          paths: profile ? uPlot.paths.linear() : isotopeStickPaths, fill: null, points: { show: false },
           value: (_, value) => value == null ? "—" : value.toFixed(2) + "%",
         },
       ],

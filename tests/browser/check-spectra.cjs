@@ -27,6 +27,12 @@ const assert=require('node:assert/strict');
   assert.equal(response.headers()['content-encoding'],'gzip');
   assert(bytes<50000,`response too large: ${bytes}`);
   assert.equal(await page.locator('button[type=submit]').isDisabled(),false);
+  assert.equal(await page.getByRole('button',{name:'Profile',exact:true}).getAttribute('aria-pressed'),'true');
+  assert(await page.evaluate(()=>{
+    const {chart,profile}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    return chart.series[1].paths!==isotopeStickPaths && JSON.stringify(chart.data)===JSON.stringify([profile.mz,profile.intensity]);
+  }));
+  await page.getByRole('button',{name:'Peaks',exact:true}).click();
   const state=await page.evaluate(()=>{
     const {chart,peaks}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
     const canvas=document.querySelector('[data-spectrum] canvas');
