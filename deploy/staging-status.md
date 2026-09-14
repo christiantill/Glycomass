@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:548a1d2b4cde109e133f09a1783ae333bef89d1c`
+- Image `ghcr.io/christiantill/glycomass:542fef7e86647b355fd5fc02d6ac745a8bb7fea6`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`548a1d2b4cde109e133f09a1783ae333bef89d1c`. HTTPS serves a valid certificate for
+`542fef7e86647b355fd5fc02d6ac745a8bb7fea6`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -49,8 +49,16 @@ off-server backup schedule, or deployment CI has been enabled.
 
 ## Review fixes deployed
 
-Revision `548a1d2` addresses the seven Codex review findings. Both web and worker
-roles run this image. The complete synthetic smoke passed again from the server
+Revision `2e26dd0` addresses the seven Codex review findings. Both web and worker
+roles run the deployed image listed above. The complete synthetic smoke passed again from the server
 using normal DNS and from the deployment machine using the IP override with TLS
 verification. Legacy URL redirects and invalid disulfide API rejection also passed
 over HTTPS.
+
+## Apache 2.0 release packaging
+
+The licensing commit and its descendants were rewritten to use Apache 2.0.
+The currently deployed image includes the standard LICENSE and an attribution
+NOTICE naming Melissa Bärenfänger and Christian Till. Its installed package
+metadata declares `Apache-2.0`. Wheel/source archive contents were verified,
+and the complete HTTPS deployment smoke passed after this image was deployed.
