@@ -23,7 +23,7 @@ assert json.loads(request("/api/v1/health"))["status"] == "ok"
 assert "0000-0002-2855-924X" in request("/citation")
 for kind, inputs in [
     ("peptide", {"sequence": "PEPTIDE", "charge": 1}),
-    ("protein", {"sequence": "PEPTIDE", "charge": 1, "resolution": "high"}),
+    ("protein", {"sequence": "PEPTIDE", "charge": 1, "resolution": "medium"}),
     ("glycan", {"hex": 3, "charge": 1}),
 ]:
     html = request(
