@@ -38,7 +38,7 @@ Production does not use that Compose file.
 5. Export these deployment settings:
    - `GLYCOMASS_IMAGE=christiantill/glycomass` (GHCR namespace/image)
    - `GLYCOMASS_DEPLOY_HOST` (server IP/SSH hostname)
-   - `GLYCOMASS_DEPLOY_DOMAIN` (staging hostname)
+   - `GLYCOMASS_DEPLOY_DOMAIN` (hostname, or comma-separated hostnames for the same app)
    - `KAMAL_REGISTRY_USERNAME` (GitHub account with package access)
    - `GLYCOMASS_DEPLOY_USER` (defaults to root)
 6. Supply `KAMAL_REGISTRY_PASSWORD`, a fresh `POSTGRES_PASSWORD`, and

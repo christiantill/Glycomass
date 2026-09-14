@@ -17,7 +17,10 @@ servers:
 proxy:
   ssl: true
   forward_headers: true
-  host: <%= ENV.fetch("GLYCOMASS_DEPLOY_DOMAIN") %>
+  hosts:
+<% ENV.fetch("GLYCOMASS_DEPLOY_DOMAIN").split(",").each do |domain| %>
+    - <%= domain.strip %>
+<% end %>
   app_port: 8000
   buffering:
     max_request_body: 262144000
