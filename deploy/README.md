@@ -15,16 +15,25 @@ copied into the image; legacy code, Git history, and local secrets are excluded.
 
 ## Local container verification
 
+Run from the repository root. The subshell removes the disposable stack and
+its volumes on success or failure:
+
 ```sh
-docker build -t glycomass:deployment-test .
-docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml up -d --wait
-docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml logs worker
-# Remove only this disposable smoke stack and its test data:
-docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml down -v
+(
+  set -eu
+  trap 'docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml down -v' EXIT
+  docker build -t glycomass:deployment-test .
+  docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml up -d --wait
+  docker compose -p glycomass-deploy-smoke -f deploy/compose.smoke.yml exec -T web \
+    python - http://localhost:8000 < deploy/smoke.py
+)
 ```
 
 The smoke stack uses disposable development credentials and no published ports.
-Production does not use that Compose file.
+Production does not use that Compose file. The test creates permalinks, an
+identifier job, and files; removing this stack's volumes removes those artifacts.
+Do not run this write-producing test against live or shared staging without a
+separate artifact-cleanup mechanism.
 
 ## Server setup and first deployment
 
@@ -62,16 +71,20 @@ HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
 
 ## Operations
 
-- After deployment, run `python3 deploy/smoke.py https://glycomass.com` to check
-  calculators, saved links, and upload → worker → download processing. This
-  creates test records in the selected service.
+- Before deployment, use the isolated smoke flow above for calculators, saved
+  links, and upload → worker → download processing. After deployment, check
+  `curl --fail https://glycomass.com/api/v1/health` and load the calculator pages
+  without submitting forms. These read-only checks do not validate the live
+  worker pipeline.
 - Browser regressions live in `tests/browser/check-spectra.cjs`; JavaScript unit
   checks run with `node --test tests/browser/spectrum-paths.cjs`.
 - Completed results have no automatic expiry. Monitor disk usage; retention
   is a follow-up, not an enabled feature.
 - A one-off PostgreSQL/file backup was saved on the maintainer's computer and
   restored successfully into a disposable database. Recurring/cloud backups
-  were deferred. Back up both the database and shared files before risky changes.
+  were explicitly deferred by the owner for this hobby deployment. Data created
+  since that backup can be lost; this is not recurring recovery protection.
+  Back up both the database and shared files before risky changes.
 - Deployments are manual. Merging a PR does not deploy it.
 - Roll back application releases with Kamal; Heroku is no longer available.
 
