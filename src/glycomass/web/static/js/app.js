@@ -35,3 +35,13 @@ document.body.addEventListener("click", (e) => {
     setTimeout(() => { btn.textContent = prev; }, 1500);
   });
 });
+
+// Render our HTML error fragments while retaining meaningful HTTP error statuses.
+document.body.addEventListener("htmx:beforeSwap", (event) => {
+  const detail = event.detail;
+  if (detail.target?.id === "result" && [413, 422, 503].includes(detail.xhr.status) &&
+      (detail.xhr.getResponseHeader("Content-Type") || "").startsWith("text/html")) {
+    detail.shouldSwap = true;
+    detail.isError = false;
+  }
+});

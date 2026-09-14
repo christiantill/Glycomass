@@ -1,4 +1,4 @@
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.datastructures import Headers
 from starlette.formparsers import MultiPartException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -13,19 +13,23 @@ class UploadLimitMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if not (
-            scope["type"] == "http"
-            and scope["method"] == "POST"
-            and scope["path"] == "/identifier"
-        ):
+        path = scope.get("path", "")
+        is_upload = path == "/identifier"
+        is_calculator = path in {
+            "/peptide", "/protein", "/glycan",
+            "/api/v1/calculate/peptide", "/api/v1/calculate/protein", "/api/v1/calculate/glycan",
+        }
+        if scope["type"] != "http" or scope["method"] != "POST" or not (is_upload or is_calculator):
             await self.app(scope, receive, send)
             return
 
-        response = HTMLResponse(
-            '<div class="error-note">File exceeds the maximum upload size.</div>',
-            status_code=413,
+        message = "File exceeds the maximum upload size." if is_upload else "Calculation request is too large."
+        response = (
+            JSONResponse({"detail": message}, status_code=413) if path.startswith("/api/")
+            else HTMLResponse(f'<div class="error-note">{message}</div>', status_code=413)
         )
-        limit = get_settings().max_upload_bytes
+        # Allow URL-encoded 100,000-residue proteins, but bound parsing overhead.
+        limit = get_settings().max_upload_bytes if is_upload else 1024 * 1024
         length = Headers(scope=scope).get("content-length", "")
         if length.isdigit() and int(length) > limit:
             await response(scope, receive, send)

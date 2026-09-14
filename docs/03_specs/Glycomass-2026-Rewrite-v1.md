@@ -11,7 +11,7 @@
 
 Glycomass is a public web tool for glycan / glycopeptide / glycoprotein
 mass-spectrometry calculations. This spec defines a **full rewrite** to a modern
-2026 stack, migrating off Heroku to a single Hetzner VPS, while preserving the
+2026 stack, migrating off Heroku to a single netcup VPS, while preserving the
 scientific behavior of the existing calculators (verified against captured
 ground-truth fixtures).
 
@@ -23,7 +23,7 @@ ground-truth fixtures).
 - Four capabilities: **3 mass calculators**, a real **glycopeptide identifier**,
   a **public JSON API**, and **shareable permalinks**.
 - Interactive client-side m/z spectra (replacing static matplotlib PNGs).
-- Self-hosted on one Hetzner VPS via **Kamal**.
+- Self-hosted on one netcup VPS via **Kamal**.
 
 ### Non-goals
 - **No user accounts / auth** — everything is public. (If accounts are wanted
@@ -57,7 +57,7 @@ the chemistry, discards the rest, and rebuilds on the owner's standard stack.
 | File storage | Local Docker volume (MGF uploads + results), with retention cleanup |
 | Logging | structlog (JSON in prod) |
 | Reverse proxy / TLS | kamal-proxy (auto Let's Encrypt) |
-| Deploy | **Kamal 2** on a single Hetzner VPS; Postgres + Redis as Kamal accessories; web + worker roles from one image; GitHub Actions → GHCR → `kamal deploy` |
+| Deploy | **Kamal 2** on a single netcup VPS; Postgres + Redis as Kamal accessories; web + worker roles from one image; GitHub Actions → GHCR → `kamal deploy` |
 | Quality | ruff, mypy --strict, pytest (≥80% cov), pre-commit (ruff + gitleaks), `uv lock --check`, Trivy (image), light semgrep, scheduled `pip-audit` |
 
 Conventions are lifted from FiberQA (`backend/pyproject.toml` `[tool.*]` blocks,
@@ -202,7 +202,7 @@ copied from FiberQA. No tenant columns.
   GitHub Actions holds registry + deploy SSH creds. **Nothing sensitive committed.**
 - **CI/CD:** GitHub Actions on push to main → build & push image to GHCR →
   `kamal deploy`. Migrations (`alembic upgrade head`) run as a pre-deploy step.
-- **Cutover:** build → validate fixture parity → deploy to Hetzner alongside Heroku
+- **Cutover:** build → validate fixture parity → deploy to netcup alongside Heroku
   → smoke test → repoint glycomass.com DNS → decommission Heroku.
 
 ---

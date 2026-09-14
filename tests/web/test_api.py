@@ -51,3 +51,20 @@ def test_impossible_disulfide_count_returns_422():
     r = client.post("/api/v1/calculate/protein", json={"sequence": "PEPTIDE", "disulfide_bridges": 1})
     assert r.status_code == 422
     assert "two cysteines" in r.json()["detail"]
+
+
+def test_overlong_sequences_rejected_before_calculation():
+    for kind, maximum in [('protein', 100000), ('peptide', 100)]:
+        response = client.post('/api/v1/calculate/'+kind, json={'sequence': 'A'*(maximum+1)})
+        assert response.status_code == 422
+
+
+def test_calculator_request_body_limit():
+    response = client.post('/api/v1/calculate/protein', content=b'x'*(1024*1024+1), headers={'Content-Type':'application/json'})
+    assert response.status_code == 413
+    assert response.json()['detail'] == 'Calculation request is too large.'
+
+
+def test_streamed_calculator_body_limit_without_content_length():
+    response = client.post('/api/v1/calculate/protein', content=iter([b'{"sequence":"', b'A'*(1024*1024), b'"}']), headers={'Content-Type':'application/json'})
+    assert response.status_code == 413

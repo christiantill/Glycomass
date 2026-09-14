@@ -178,3 +178,73 @@ async def test_streamed_upload_is_bounded_and_parser_closes_files(monkeypatch, d
     assert sent[0]["status"] == 413
     assert reads == 2  # do not consume the rest of the oversized stream
     assert opened and all(file.closed for file in opened)
+
+
+@pytest.mark.parametrize("body", [b"", b"not an mgf", b"BEGIN IONS\nEND IONS\n", b"BEGIN IONS\nPEPMASS=900\n1 2\n"])
+def test_invalid_upload_rejected_before_queue(client, body):
+    response = client.post('/identifier', files={'mgf_file': ('invalid.mgf', body, 'text/plain')})
+    assert response.status_code == 422
+    assert 'valid MGF' in response.text
+
+
+@pytest.mark.parametrize("failure", ["copy", "path_commit"])
+def test_partial_upload_is_removed_and_job_failed(client, monkeypatch, failure):
+    from sqlalchemy import select
+
+    from glycomass.config import get_settings
+    from glycomass.db.models import IdentifierJob
+
+    def fail_write(src, dest):
+        dest.write_bytes(b'partial')
+        raise OSError('disk full')
+
+    if failure == "copy":
+        monkeypatch.setattr(idmod, '_write_upload', fail_write)
+    else:
+        from sqlalchemy.ext.asyncio import AsyncSession
+        original_commit = AsyncSession.commit
+        commits = 0
+
+        async def fail_path_commit(self):
+            nonlocal commits
+            commits += 1
+            if commits == 2:
+                raise RuntimeError("path update failed")
+            await original_commit(self)
+
+        monkeypatch.setattr(AsyncSession, "commit", fail_path_commit)
+    response = client.post('/identifier', files={'mgf_file': ('s.mgf', _SAMPLE.read_bytes(), 'text/plain')})
+    assert response.status_code == 503
+    assert not list(get_settings().upload_dir.glob('*.mgf'))
+
+    async def check():
+        engine, sm = make_engine_and_sessionmaker(get_settings().database_url)
+        try:
+            async with sm() as session:
+                job = (await session.execute(select(IdentifierJob))).scalar_one()
+                assert job.status == 'failed'
+                assert 'persist' in job.error
+        finally:
+            await engine.dispose()
+    asyncio.run(check())
+
+
+@pytest.mark.asyncio
+async def test_concurrent_first_uploads_share_one_pool(monkeypatch):
+    from starlette.requests import Request
+
+    app = create_app()
+    request = Request({'type': 'http', 'app': app})
+    calls = 0
+    pool = object()
+
+    async def create(settings):
+        nonlocal calls
+        calls += 1
+        await asyncio.sleep(0.01)
+        return pool
+
+    monkeypatch.setattr(idmod, 'create_pool', create)
+    pools = await asyncio.gather(*(idmod._get_arq_pool(request) for _ in range(10)))
+    assert all(result is pool for result in pools)
+    assert calls == 1

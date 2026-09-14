@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import math
 import shutil
 from pathlib import Path
 from typing import BinaryIO
@@ -13,6 +15,7 @@ from starlette.concurrency import run_in_threadpool
 from glycomass.config import get_settings
 from glycomass.db.models import IdentifierJob
 from glycomass.db.session import get_sessionmaker
+from glycomass.logging_config import get_logger
 from glycomass.web.pages import templates
 
 router = APIRouter()
@@ -24,14 +27,49 @@ async def _get_arq_pool(request: Request) -> ArqRedis:
     leaking a fresh connection pool per request."""
     pool = getattr(request.app.state, "arq_pool", None)
     if pool is None:
-        pool = await create_pool(RedisSettings.from_dsn(get_settings().redis_url))
-        request.app.state.arq_pool = pool
+        async with request.app.state.arq_pool_lock:
+            pool = request.app.state.arq_pool
+            if pool is None:
+                pool = await create_pool(RedisSettings.from_dsn(get_settings().redis_url))
+                request.app.state.arq_pool = pool
     return pool
 
 
 def _write_upload(src: BinaryIO, dest: Path) -> None:
     with dest.open("wb") as fh:
         shutil.copyfileobj(src, fh)
+
+
+def _recognizable_mgf(src: BinaryIO) -> bool:
+    """Check the first complete spectrum without retaining the upload in memory."""
+    inside = False
+    peaks = 0
+    precursor = False
+    try:
+        while line := src.readline(4097):
+            if len(line) > 4096:
+                return False
+            line = line.strip()
+            if line == b"BEGIN IONS":
+                if inside:
+                    return False
+                inside = True
+            elif inside and line == b"END IONS":
+                return precursor and peaks > 0
+            elif inside and line.startswith(b"PEPMASS="):
+                value = float(line.split(b"=", 1)[1].split()[0])
+                precursor = math.isfinite(value) and value > 0
+            elif inside and line and b"=" not in line and not line.startswith((b"#", b";", b"!")):
+                columns = line.split()
+                mz, intensity = float(columns[0]), float(columns[1])
+                if not (math.isfinite(mz) and math.isfinite(intensity) and mz > 0 and intensity >= 0):
+                    return False
+                peaks += 1
+        return False
+    except (ValueError, IndexError):
+        return False
+    finally:
+        src.seek(0)
 
 
 @router.get("/identifier", response_class=HTMLResponse)
@@ -49,6 +87,11 @@ async def identifier_upload(request: Request, mgf_file: UploadFile) -> HTMLRespo
             {"message": "File exceeds the maximum upload size."},
             status_code=413,
         )
+    if not await run_in_threadpool(_recognizable_mgf, mgf_file.file):
+        return templates.TemplateResponse(
+            request, "_error.html", {"message": "Upload a valid MGF with at least one spectrum, precursor mass, and peak."},
+            status_code=422,
+        )
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     sm = get_sessionmaker()
     # Insert the job row in a short session, then persist the upload OUTSIDE the
@@ -60,12 +103,28 @@ async def identifier_upload(request: Request, mgf_file: UploadFile) -> HTMLRespo
         await session.commit()
         jid = job.id
     dest = settings.upload_dir / f"{jid}.mgf"
-    await run_in_threadpool(_write_upload, mgf_file.file, dest)
-    async with sm() as session:
-        row = await session.get(IdentifierJob, jid)
-        if row is not None:
-            row.upload_path = str(dest)
-            await session.commit()
+    try:
+        await run_in_threadpool(_write_upload, mgf_file.file, dest)
+        async with sm() as session:
+            row = await session.get(IdentifierJob, jid)
+            if row is not None:
+                row.upload_path = str(dest)
+                await session.commit()
+    except Exception:
+        with contextlib.suppress(OSError):
+            dest.unlink(missing_ok=True)
+        try:
+            async with sm() as session:
+                row = await session.get(IdentifierJob, jid)
+                if row is not None:
+                    row.status = "failed"
+                    row.error = "Could not persist the upload."
+                    await session.commit()
+        except Exception:
+            get_logger(__name__).exception("upload_failure_cleanup_failed", job_id=jid)
+        return templates.TemplateResponse(
+            request, "_error.html", {"message": "Could not save the upload — please retry."}, status_code=503,
+        )
 
     try:
         pool = await _get_arq_pool(request)

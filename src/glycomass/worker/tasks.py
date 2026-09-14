@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from glycomass.config import get_settings
 from glycomass.db.models import IdentifierJob
 from glycomass.db.session import get_sessionmaker
+from glycomass.logging_config import get_logger
 from glycomass.performance import measure
 
 
@@ -39,6 +40,28 @@ async def run_identifier_job(
             job.status = "done"
             job.result_path = result_path
             job.summary = json.dumps(summary)
+        except asyncio.CancelledError:
+            async def record_cancelled() -> None:
+                async with sm() as cleanup_session:
+                    cancelled = await cleanup_session.get(IdentifierJob, job_id)
+                    if cancelled is not None:
+                        cancelled.status = "failed"
+                        cancelled.error = "Processing was cancelled or timed out. Please upload again."
+                        await cleanup_session.commit()
+
+            cleanup = asyncio.create_task(record_cancelled())
+            while not cleanup.done():
+                try:
+                    await asyncio.shield(cleanup)
+                except asyncio.CancelledError:
+                    continue  # finish the database update even on repeated cancellation
+                except Exception:
+                    break
+            try:
+                cleanup.result()
+            except Exception:
+                get_logger(__name__).exception("cancelled_job_update_failed", job_id=job_id)
+            raise
         except Exception as exc:  # noqa: BLE001 - record any failure on the row
             job.status = "failed"
             job.error = f"{type(exc).__name__}: {exc}"

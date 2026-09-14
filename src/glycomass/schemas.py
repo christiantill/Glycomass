@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PeptideRequest(BaseModel):
-    sequence: str
+    sequence: str = Field(min_length=1, max_length=100)
     hex: int = 0
     hexnac: int = 0
     fuc: int = 0
@@ -13,7 +13,7 @@ class PeptideRequest(BaseModel):
 
 
 class ProteinRequest(BaseModel):
-    sequence: str
+    sequence: str = Field(min_length=1, max_length=100000)
     hex: int = 0
     hexnac: int = 0
     fuc: int = 0

@@ -74,7 +74,7 @@ enable the citation button once the file is on the default branch.
 
 ## Hosting migration
 
-The existing design spec targets Heroku → Hetzner with Kamal. This fits the
+The existing design spec targets Heroku → netcup with Kamal. This fits the
 existing web/worker design: both processes need access to the same upload/result
 files, alongside PostgreSQL and Redis.
 
@@ -86,10 +86,11 @@ Docker/Kamal configuration and a disposable local integration stack are now in
 `deploy/`; see its README. The image build, Kamal 2.12.0 configuration check, and
 real PostgreSQL/Redis/worker integration smoke passed, including saved permalinks
 and upload-to-download processing. Still needed on the actual server: upload/result
-retention, backup/restore verification, TLS, and a staged domain cutover with a
-rollback path. Confirm the provider, server/account access, and current hosting
-before provisioning. The maintainer selected Hetzner/self-managed hosting.
-No server purchase, deployment, or DNS change has occurred.
+retention, backup/restore verification, and production domain cutover with a
+rollback path. The provisioned server runs Debian 13 with key-only SSH and HTTPS staging. The maintainer selected netcup/self-managed hosting.
+The netcup server is provisioned and staging is live at https://staging.glycomass.com.
+See `deploy/staging-status.md` for current deployment validation; production cutover
+and scheduled backups/retention remain outstanding.
 
 ## Review follow-up (2026-09-14)
 
