@@ -69,7 +69,7 @@ def citation_page(request: Request) -> HTMLResponse:
 @router.post("/peptide", response_class=HTMLResponse)
 async def peptide_result(
     request: Request,
-    sequence: str = Form(...),
+    sequence: str = Form(..., min_length=1, max_length=100),
     hex: int = Form(0), hexnac: int = Form(0), fuc: int = Form(0), sia: int = Form(0),
     charge: int = Form(1), carbamidomethyl: bool = Form(False), deamidation: int = Form(0),
 ) -> HTMLResponse:
@@ -90,7 +90,7 @@ def protein_page(request: Request) -> HTMLResponse:
 @router.post("/protein", response_class=HTMLResponse)
 async def protein_result(
     request: Request,
-    sequence: str = Form(...),
+    sequence: str = Form(..., min_length=1, max_length=100000),
     hex: int = Form(0), hexnac: int = Form(0), fuc: int = Form(0), sia: int = Form(0),
     charge: int = Form(1), deamidation: int = Form(0),
     disulfide_bridges: int = Form(0), resolution: str = Form("medium"),

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from glycomass.config import get_settings
@@ -38,6 +42,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     app = FastAPI(title="Glycomass", version="0.1.0", lifespan=lifespan)
     app.state.arq_pool = None
+    app.state.arq_pool_lock = asyncio.Lock()
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_input(request: Request, exc: RequestValidationError) -> Response:
+        if request.url.path in {"/protein", "/peptide", "/glycan", "/identifier"}:
+            return HTMLResponse(
+                '<div class="error-note">Invalid input. Check required fields. Peptides allow 1–100 characters; proteins allow 1–100,000.</div>',
+                status_code=422,
+            )
+        return await request_validation_exception_handler(request, exc)
 
     app.add_middleware(UploadLimitMiddleware)
 

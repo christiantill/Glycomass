@@ -5,16 +5,16 @@
 <h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--step-3);color:var(--paper);margin:.6rem 0 1.6rem">Glycoprotein</h1>
 <div class="calc-shell">
   <form class="calc-form" hx-post="/protein" hx-target="#result" hx-swap="innerHTML">
-    <div><label>Protein sequence</label><input type="text" name="sequence" value="{{ inputs.sequence }}"></div>
+    <div><label for="protein-sequence">Protein sequence</label><input id="protein-sequence" type="text" name="sequence" maxlength="100000" value="{{ inputs.sequence }}"></div>
     <div class="calc-grid">
-      <div><label>Hex</label><input type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
-      <div><label>HexNAc</label><input type="number" name="hexnac" value="{{ inputs.hexnac }}" min="0"></div>
-      <div><label>Fuc</label><input type="number" name="fuc" value="{{ inputs.fuc }}" min="0"></div>
-      <div><label>Sia</label><input type="number" name="sia" value="{{ inputs.sia }}" min="0"></div>
-      <div><label>Charge</label><input type="number" name="charge" value="{{ inputs.charge }}"></div>
-      <div><label>Deamidation</label><input type="number" name="deamidation" value="{{ inputs.deamidation }}" min="0"></div>
-      <div><label>Disulfide bridges</label><input type="number" name="disulfide_bridges" value="{{ inputs.disulfide_bridges }}" min="0"></div>
-      <div><label>Resolution</label><select name="resolution">
+      <div><label for="protein-hex">Hex</label><input id="protein-hex" type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
+      <div><label for="protein-hexnac">HexNAc</label><input id="protein-hexnac" type="number" name="hexnac" value="{{ inputs.hexnac }}" min="0"></div>
+      <div><label for="protein-fuc">Fuc</label><input id="protein-fuc" type="number" name="fuc" value="{{ inputs.fuc }}" min="0"></div>
+      <div><label for="protein-sia">Sia</label><input id="protein-sia" type="number" name="sia" value="{{ inputs.sia }}" min="0"></div>
+      <div><label for="protein-charge">Charge</label><input id="protein-charge" type="number" name="charge" value="{{ inputs.charge }}"></div>
+      <div><label for="protein-deamidation">Deamidation</label><input id="protein-deamidation" type="number" name="deamidation" value="{{ inputs.deamidation }}" min="0"></div>
+      <div><label for="protein-disulfide_bridges">Disulfide bridges</label><input id="protein-disulfide_bridges" type="number" name="disulfide_bridges" value="{{ inputs.disulfide_bridges }}" min="0"></div>
+      <div><label for="protein-resolution">Resolution</label><select id="protein-resolution" name="resolution">
         <option {% if inputs.resolution == 'low' %}selected{% endif %}>low</option>
         <option {% if inputs.resolution == 'medium' %}selected{% endif %}>medium</option>
         <option {% if inputs.resolution == 'super high' %}selected{% endif %}>super high</option>

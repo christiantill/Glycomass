@@ -145,3 +145,60 @@ async def test_processing_leaves_event_loop_responsive_and_reaps_cancelled_child
         with pytest.raises(asyncio.CancelledError):
             await asyncio.wait_for(task, timeout=5)
     assert children[0].returncode is not None
+
+
+@pytest.mark.asyncio
+async def test_cancelled_job_reaches_terminal_state_and_retains_upload(tmp_path, monkeypatch):
+    import asyncio
+
+    import glycomass.worker.tasks as tasks
+    from glycomass.config import get_settings
+
+    monkeypatch.setenv('GLYCOMASS_RESULT_DIR', str(tmp_path))
+    get_settings.cache_clear()
+    started = asyncio.Event()
+
+    async def blocked(*args):
+        started.set()
+        await asyncio.Event().wait()
+
+    monkeypatch.setattr(tasks, 'process_mgf', blocked)
+    upload = tmp_path/'in.mgf'
+    shutil.copy(_SAMPLE, upload)
+    engine, sm = await _make_db()
+    try:
+        async with sm() as session:
+            job = IdentifierJob(upload_path=str(upload))
+            session.add(job)
+            await session.commit()
+            jid = job.id
+        from sqlalchemy.ext.asyncio import AsyncSession
+        original_commit = AsyncSession.commit
+        cleanup_started = asyncio.Event()
+        allow_cleanup = asyncio.Event()
+        commits = 0
+
+        async def delayed_cleanup_commit(self):
+            nonlocal commits
+            commits += 1
+            if commits == 2:
+                cleanup_started.set()
+                await allow_cleanup.wait()
+            await original_commit(self)
+
+        monkeypatch.setattr(AsyncSession, "commit", delayed_cleanup_commit)
+        task = asyncio.create_task(run_identifier_job(jid, sessionmaker=sm))
+        await asyncio.wait_for(started.wait(), timeout=5)
+        task.cancel()
+        await asyncio.wait_for(cleanup_started.wait(), timeout=5)
+        task.cancel()  # repeated shutdown cancellation must not cancel DB cleanup
+        allow_cleanup.set()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, timeout=5)
+        async with sm() as session:
+            job = await session.get(IdentifierJob, jid)
+            assert job.status == 'failed'
+            assert 'cancelled' in job.error
+        assert upload.exists()
+    finally:
+        await engine.dispose()

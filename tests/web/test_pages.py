@@ -60,3 +60,10 @@ def test_legacy_bookmarks_redirect_permanently(client):
         assert r.status_code == 308
         assert r.headers["location"] == new
         assert client.get(old).status_code == 200
+
+
+def test_overlong_html_sequences_return_visible_error(client):
+    for kind, maximum in [('protein', 100000), ('peptide', 100)]:
+        response = client.post('/'+kind, data={'sequence':'A'*(maximum+1)})
+        assert response.status_code == 422
+        assert 'error-note' in response.text

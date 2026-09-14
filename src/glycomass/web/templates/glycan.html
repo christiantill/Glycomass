@@ -6,21 +6,21 @@
 <div class="calc-shell">
   <form class="calc-form" hx-post="/glycan" hx-target="#result" hx-swap="innerHTML">
     <div class="calc-grid">
-      <div><label>Hex</label><input type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
-      <div><label>HexNAc</label><input type="number" name="hexnac" value="{{ inputs.hexnac }}" min="0"></div>
-      <div><label>Fuc</label><input type="number" name="fuc" value="{{ inputs.fuc }}" min="0"></div>
-      <div><label>Sia</label><input type="number" name="sia" value="{{ inputs.sia }}" min="0"></div>
-      <div><label>Charge</label><input type="number" name="charge" value="{{ inputs.charge }}"></div>
-      <div><label>Modification</label>
-        <select name="modification">
+      <div><label for="glycan-hex">Hex</label><input id="glycan-hex" type="number" name="hex" value="{{ inputs.hex }}" min="0"></div>
+      <div><label for="glycan-hexnac">HexNAc</label><input id="glycan-hexnac" type="number" name="hexnac" value="{{ inputs.hexnac }}" min="0"></div>
+      <div><label for="glycan-fuc">Fuc</label><input id="glycan-fuc" type="number" name="fuc" value="{{ inputs.fuc }}" min="0"></div>
+      <div><label for="glycan-sia">Sia</label><input id="glycan-sia" type="number" name="sia" value="{{ inputs.sia }}" min="0"></div>
+      <div><label for="glycan-charge">Charge</label><input id="glycan-charge" type="number" name="charge" value="{{ inputs.charge }}"></div>
+      <div><label for="glycan-modification">Modification</label>
+        <select id="glycan-modification" name="modification">
           {% for m in ["None", "Permethyl", "Peracetly", "ReducedEnd", "Label_2AB", "Label_2AA"] %}
-          <option {% if inputs.modification == m %}selected{% endif %}>{{ m }}</option>
+          <option value="{{ m }}" {% if inputs.modification == m %}selected{% endif %}>{{ "Peracetyl" if m == "Peracetly" else m }}</option>
           {% endfor %}
         </select>
       </div>
     </div>
-    <label style="display:flex;gap:.5rem;align-items:center;text-transform:none;letter-spacing:0">
-      <input type="checkbox" name="sodium" value="true" style="width:auto" {% if inputs.sodium %}checked{% endif %}> Sodium adduct
+    <label for="glycan-sodium" style="display:flex;gap:.5rem;align-items:center;text-transform:none;letter-spacing:0">
+      <input id="glycan-sodium" type="checkbox" name="sodium" value="true" style="width:auto" {% if inputs.sodium %}checked{% endif %}> Sodium adduct
     </label>
     <button class="btn btn-primary" type="submit">Calculate</button>
   </form>

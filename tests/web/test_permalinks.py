@@ -118,4 +118,4 @@ def test_peracetyl_aliases_share_slug_and_roundtrip_selection(client):
     response = client.post("/glycan", data={"hex": 5, "hexnac": 4, "modification": "Peracetyl"})
     slug = re.search(r"/c/([0-9a-f]{12})", response.text).group(1)
     page = client.get(f"/c/{slug}")
-    assert "<option selected>Peracetly</option>" in page.text
+    assert '<option value="Peracetly" selected>Peracetyl</option>' in page.text
