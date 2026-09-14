@@ -22,3 +22,15 @@ def test_disulfide_bridges_subtract_two_hydrogens_each():
 def test_unknown_resolution_raises():
     with pytest.raises(KeyError):
         protein_mass("PEPTIDE", charge=1, resolution="ultra")
+
+
+@pytest.mark.parametrize("sequence,bridges", [("PEPTIDE", 1), ("C", 1), ("CC", 2), ("CC", -1)])
+def test_impossible_disulfide_counts_rejected(sequence, bridges):
+    from glycomass.core.errors import GlycomassError
+
+    with pytest.raises(GlycomassError, match="two cysteines"):
+        protein_mass(sequence, disulfide_bridges=bridges)
+
+
+def test_lowercase_cysteines_support_disulfide_bridges():
+    assert protein_mass("cc", disulfide_bridges=1) == protein_mass("CC", disulfide_bridges=1)

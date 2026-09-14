@@ -54,3 +54,30 @@ def test_process_mgf_end_to_end(tmp_path):
     assert len(reread) == 1
     assert abs(reread[0].pepmass - 800.0) < 1e-2
     assert reread[0].charge == 1
+
+
+def test_fragment_search_matches_pairwise_reference_at_boundaries_and_ties():
+    from glycomass.core.identifier.constants import HEXNAC_DIFF, MIN_FRAGMENT_MZ
+
+    rng = np.random.default_rng(42)
+    for _ in range(30):
+        lower = rng.uniform(500, 1000, 20)
+        mz = np.concatenate([
+            lower, lower + HEXNAC_DIFF[0], lower + HEXNAC_DIFF[1],
+            lower + sum(HEXNAC_DIFF) / 2, rng.uniform(100, 2000, 50),
+        ])
+        rng.shuffle(mz)
+        intensity = rng.integers(0, 5, len(mz))  # deliberate ties, original order wins
+        diff = mz[:, None] - mz[None, :]
+        candidates = np.flatnonzero(
+            np.any((diff > HEXNAC_DIFF[0]) & (diff < HEXNAC_DIFF[1]), axis=1)
+            & (mz > MIN_FRAGMENT_MZ)
+        )
+        expected = float(mz[candidates[np.argmax(intensity[candidates])]])
+        assert P.find_pep_hexnac_mz(mz, intensity) == expected
+
+
+def test_fragment_search_handles_large_spectrum_and_empty_input():
+    mz = np.arange(100_000, dtype=float) / 10
+    assert P.find_pep_hexnac_mz(mz, mz) == 9_999.9
+    assert P.find_pep_hexnac_mz(np.array([]), np.array([])) is None

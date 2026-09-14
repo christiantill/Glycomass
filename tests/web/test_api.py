@@ -45,3 +45,9 @@ def test_static_css_served():
     r = client.get("/static/css/app.css")
     assert r.status_code == 200
     assert "--gold" in r.text
+
+
+def test_impossible_disulfide_count_returns_422():
+    r = client.post("/api/v1/calculate/protein", json={"sequence": "PEPTIDE", "disulfide_bridges": 1})
+    assert r.status_code == 422
+    assert "two cysteines" in r.json()["detail"]

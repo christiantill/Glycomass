@@ -35,6 +35,8 @@ def normalize(kind: str, inputs: dict[str, Any]) -> dict[str, Any]:
     out = {**DEFAULTS[kind], **{k: v for k, v in inputs.items() if k in DEFAULTS[kind]}}
     if "sequence" in out:
         out["sequence"] = str(out["sequence"]).upper()
+    if kind == "glycan" and out["modification"] == "Peracetyl":
+        out["modification"] = "Peracetly"  # preserve existing URLs and template value
     return out
 
 

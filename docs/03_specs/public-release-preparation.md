@@ -90,3 +90,20 @@ retention, backup/restore verification, TLS, and a staged domain cutover with a
 rollback path. Confirm the provider, server/account access, and current hosting
 before provisioning. The maintainer selected Hetzner/self-managed hosting.
 No server purchase, deployment, or DNS change has occurred.
+
+## Review follow-up (2026-09-14)
+
+Codex review findings on PR #5 were addressed before the next CodeRabbit review:
+MGF peak matching now uses linear memory; uploads are bounded while streaming;
+identifier processing runs in a cancellable child process with one active job;
+source uploads are removed only after committing successful results. Legacy
+calculator/identifier bookmarks redirect permanently, and both peracetyl spellings
+produce the same permalink and selected form option.
+
+Protein calculations now reject negative disulfide counts and counts requiring
+more cysteines than the sequence contains. This intentionally differs from legacy
+fixtures that subtracted hydrogen for impossible bridges. Those fixtures assert
+validation errors; numerical tolerances for valid calculations are unchanged.
+
+Validation: 125 default tests (96% coverage), 795 grid cases, Ruff, strict mypy,
+and the frozen dependency lock check pass.

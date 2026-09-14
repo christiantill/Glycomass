@@ -42,3 +42,21 @@ def test_protein_bad_resolution_renders_error_not_500(client):
     r = client.post("/protein", data={"sequence": "PEPTIDE", "charge": 1, "resolution": "ultra"})
     assert r.status_code == 200
     assert "error-note" in r.text
+
+
+def test_impossible_disulfide_count_renders_error(client):
+    r = client.post("/protein", data={"sequence": "PEPTIDE", "disulfide_bridges": 1})
+    assert r.status_code == 200
+    assert "two cysteines" in r.text
+    assert "data-spectrum" not in r.text
+
+
+def test_legacy_bookmarks_redirect_permanently(client):
+    for old, new in {
+        "/peptide_calculate": "/peptide", "/protein_calculate": "/protein",
+        "/glycan_calculate": "/glycan", "/glycan_identifier": "/identifier",
+    }.items():
+        r = client.get(old, follow_redirects=False)
+        assert r.status_code == 308
+        assert r.headers["location"] == new
+        assert client.get(old).status_code == 200

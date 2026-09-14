@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from glycomass.core import glycan_mass, peptide_mass, protein_mass
-from glycomass.core.errors import NegativeIonSodiumError
+from glycomass.core.errors import GlycomassError, NegativeIonSodiumError
 
 pytestmark = pytest.mark.grid
 
@@ -50,6 +50,13 @@ def test_protein_grid(case):
     if "error" in case:
         pytest.skip("legacy errored on this case")
     i = case["inputs"]
+    if not 0 <= i["Disulfidebridges"] <= i["Protein"].upper().count("C") // 2:
+        # Intentional scientific validation change: legacy subtracted hydrogen even
+        # when the sequence could not form the requested cysteine bridges.
+        with pytest.raises(GlycomassError, match="two cysteines"):
+            protein_mass(i["Protein"], disulfide_bridges=i["Disulfidebridges"])
+        return
+
     _check(
         protein_mass(
             i["Protein"], hex=i["Hex"], hexnac=i["HexNAc"], fuc=i["Fuc"], sia=i["Sia"],
