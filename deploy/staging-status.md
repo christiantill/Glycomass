@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:aa07bec9a6e7e5208064ceef6ccce8dbcbeab31d`
+- Image `ghcr.io/christiantill/glycomass:548a1d2b4cde109e133f09a1783ae333bef89d1c`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`aa07bec9a6e7e5208064ceef6ccce8dbcbeab31d`. HTTPS serves a valid certificate for
+`548a1d2b4cde109e133f09a1783ae333bef89d1c`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -46,3 +46,11 @@ run `kamal deploy`, then run
 
 No live-domain cutover, repository visibility change, result-retention job,
 off-server backup schedule, or deployment CI has been enabled.
+
+## Review fixes deployed
+
+Revision `548a1d2` addresses the seven Codex review findings. Both web and worker
+roles run this image. The complete synthetic smoke passed again from the server
+using normal DNS and from the deployment machine using the IP override with TLS
+verification. Legacy URL redirects and invalid disulfide API rejection also passed
+over HTTPS.
