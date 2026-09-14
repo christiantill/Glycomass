@@ -1,0 +1,122 @@
+name: Test and deploy
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'alembic/**'
+      - 'alembic.ini'
+      - 'config/deploy.yml'
+      - '.kamal/**'
+      - 'deploy/**'
+      - '!deploy/**/*.md'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.python-version'
+      - 'LICENSE'
+      - 'NOTICE'
+      - '.github/workflows/ci-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never interrupt an in-progress production deployment.
+concurrency:
+  group: ci-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.10.2'
+          enable-cache: true
+      - run: uv sync --frozen --extra dev
+      - run: uv run ruff check
+      - run: uv run mypy
+      - run: uv lock --check
+      - run: uv run pytest
+      - run: uv run pytest -m grid --no-cov
+      - run: node --test tests/browser/spectrum-paths.cjs
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GLYCOMASS_IMAGE: christiantill/glycomass
+      GLYCOMASS_DEPLOY_HOST: 62.83.18.172
+      GLYCOMASS_DEPLOY_DOMAIN: glycomass.com,www.glycomass.com,staging.glycomass.com
+      KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Skip superseded revisions
+        id: revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq .object.sha)
+          if [ "$current" = "$GITHUB_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Skipping an older revision; master has advanced.'
+          fi
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        if: steps.revision.outputs.current == 'true'
+        with:
+          ruby-version: '3.3'
+      - name: Install Kamal
+        if: steps.revision.outputs.current == 'true'
+        run: gem install kamal -v 2.12.0 --no-document
+      - name: Configure deployment credentials
+        if: steps.revision.outputs.current == 'true'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          umask 077
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  StrictHostKeyChecking yes\n  BatchMode yes\n' > ~/.ssh/config
+          cp .kamal/secrets.example .kamal/secrets
+      - name: Deploy tested revision
+        if: steps.revision.outputs.current == 'true'
+        env:
+          KAMAL_REGISTRY_PASSWORD: ${{ github.token }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          GLYCOMASS_DATABASE_URL: ${{ secrets.GLYCOMASS_DATABASE_URL }}
+        run: |
+          test -n "$POSTGRES_PASSWORD"
+          test -n "$GLYCOMASS_DATABASE_URL"
+          kamal deploy --version "$GITHUB_SHA"
+      - name: Check live health
+        if: steps.revision.outputs.current == 'true'
+        run: curl --fail --silent --show-error --retry 3 https://glycomass.com/api/v1/health
+      - name: Remove temporary credentials
+        if: always()
+        run: |
+          if [ -f ~/.ssh/id_ed25519 ]; then
+            ssh -o ConnectTimeout=10 root@"$GLYCOMASS_DEPLOY_HOST" 'docker logout ghcr.io' || true
+          fi
+          docker logout ghcr.io || true
+          rm -f ~/.ssh/id_ed25519 .kamal/secrets

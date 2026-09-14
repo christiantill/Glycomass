@@ -31,4 +31,5 @@ commands in [README.md](README.md); deployment is described in
   features belong in `src/glycomass/`, not the legacy application.
 - Never commit credentials, runtime data, or private history backups.
 - The staging hostname currently shares the live application and database.
-  See the deployment guide before deploying; merge alone does not deploy.
+  See the deployment guide before deploying; application changes merged to
+  master deploy automatically after CI passes.
