@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:f040e12c6d8a4091e502eda921d4e95baf80153f`
+- Image `ghcr.io/christiantill/glycomass:43667a6ab89377f73d144f5f426422332e120390`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`f040e12c6d8a4091e502eda921d4e95baf80153f`. HTTPS serves a valid certificate for
+`43667a6ab89377f73d144f5f426422332e120390`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -122,3 +122,16 @@ FastAPI wording and shared normalized sequence validation at peptide/protein
 form and API boundaries. All 149 tests, Ruff and mypy pass. Staging HTTPS checks
 confirm invalid/empty sequences return 422 while formatted valid inputs succeed.
 Previously fixed Codex threads were verified, replied to and resolved as well.
+
+## Merged master and simple one-off backup
+
+Merged master revision `43667a6` is deployed to staging. HTTPS smoke passed for
+all calculators, saved links and upload/worker/download processing; `/index`
+redirects to `/` and `/sitemap.xml` is served at its legacy root path.
+
+Before deployment, a consistent PostgreSQL dump and shared-file archive were
+saved on the maintainer's computer outside Git. The database dump was restored
+into a disposable database: 21 permalinks and nine job records were recovered,
+and the test database was removed. The archive is readable and checksummed.
+This is a one-off local backup, not an automated or cloud backup service. Cloud
+storage and recurring backup infrastructure were deferred at the owner's request.
