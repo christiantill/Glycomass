@@ -2,6 +2,18 @@
 
 Status: repository is private; branch history cleanup completed 2026-09-14.
 
+## GitHub Support cleanup verified (2026-09-14)
+
+GitHub Support confirmed that unreferenced commits were cleared. Authenticated
+verification found that the commits API no longer resolves the old commit
+`2d24f0ad94f5b8dd3eeabe6ac93a5affe2832ef3` (HTTP 422, "No commit found").
+The all-state PR listing contains only merged PR #5, and `git ls-remote` exposes
+only `refs/pull/5/head`; PR #1–#4 head references are gone.
+
+This completes the hosted-history cleanup step described below. Confirmation
+that the historical AWS credentials and Flask secret were revoked/replaced is
+still pending. Repository visibility remains private.
+
 ## Completed in the rewrite PR
 
 - Rewrite phases 0–4 pushed for review.
