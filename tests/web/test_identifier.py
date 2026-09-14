@@ -117,6 +117,7 @@ def test_enqueue_failure_marks_job_failed_and_returns_503(tmp_path, monkeypatch)
         )
     assert r.status_code == 503
     assert "retry" in r.text.lower()
+    assert not list((tmp_path / "up").glob("*.mgf"))
 
 
 def test_oversized_upload_rejected_before_processing(monkeypatch):

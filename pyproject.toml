@@ -47,7 +47,7 @@ packages = ["src/glycomass"]
 line-length = 100
 target-version = "py314"
 src = ["src", "tests"]
-exclude = ["app", "glycomass.py", "proteincalc_temp.py", "config.py", "tools"]
+exclude = ["app", "legacy_glycomass.py", "proteincalc_temp.py", "config.py", "tools"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM"]

@@ -26,50 +26,53 @@ async def run_identifier_job(
     """
     sm = sessionmaker or get_sessionmaker()
     settings = get_settings()
-    async with sm() as session:
-        job = (
-            await session.execute(select(IdentifierJob).where(IdentifierJob.id == job_id))
-        ).scalar_one()
-        job.status = "running"
-        await session.commit()
-        try:
-            settings.result_dir.mkdir(parents=True, exist_ok=True)
-            result_path = str(settings.result_dir / f"{job_id}.mgf")
-            with measure("identifier.job", job_id=job_id):
-                summary = await process_mgf(job.upload_path, result_path)
-            job.status = "done"
-            job.result_path = result_path
-            job.summary = json.dumps(summary)
-        except asyncio.CancelledError:
-            async def record_cancelled() -> None:
-                async with sm() as cleanup_session:
-                    cancelled = await cleanup_session.get(IdentifierJob, job_id)
-                    if cancelled is not None:
-                        cancelled.status = "failed"
-                        cancelled.error = "Processing was cancelled or timed out. Please upload again."
-                        await cleanup_session.commit()
-
-            cleanup = asyncio.create_task(record_cancelled())
-            while not cleanup.done():
-                try:
-                    await asyncio.shield(cleanup)
-                except asyncio.CancelledError:
-                    continue  # finish the database update even on repeated cancellation
-                except Exception:
-                    break
+    try:
+        async with sm() as session:
+            job = (
+                await session.execute(select(IdentifierJob).where(IdentifierJob.id == job_id))
+            ).scalar_one()
+            job.status = "running"
+            await session.commit()
             try:
-                cleanup.result()
+                settings.result_dir.mkdir(parents=True, exist_ok=True)
+                result_path = str(settings.result_dir / f"{job_id}.mgf")
+                with measure("identifier.job", job_id=job_id):
+                    summary = await process_mgf(job.upload_path, result_path)
+                job.status = "done"
+                job.result_path = result_path
+                job.summary = json.dumps(summary)
+            except Exception as exc:  # noqa: BLE001 - record processing failure
+                job.status = "failed"
+                job.error = f"{type(exc).__name__}: {exc}"
+            await session.commit()
+            if job.status == "done":
+                # Retain the source until the result and status are durably committed.
+                with contextlib.suppress(OSError):
+                    Path(job.upload_path).unlink(missing_ok=True)
+    except asyncio.CancelledError:
+        # The working session has closed/rolled back before opening cleanup's
+        # transaction. Cover cancellation during reads and both status commits.
+        async def record_cancelled() -> None:
+            async with sm() as cleanup_session:
+                cancelled = await cleanup_session.get(IdentifierJob, job_id)
+                if cancelled is not None and cancelled.status in {"queued", "running"}:
+                    cancelled.status = "failed"
+                    cancelled.error = "Processing was cancelled or timed out. Please upload again."
+                    await cleanup_session.commit()
+
+        cleanup = asyncio.create_task(record_cancelled())
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError:
+                continue  # finish cleanup even on repeated shutdown cancellation
             except Exception:
-                get_logger(__name__).exception("cancelled_job_update_failed", job_id=job_id)
-            raise
-        except Exception as exc:  # noqa: BLE001 - record any failure on the row
-            job.status = "failed"
-            job.error = f"{type(exc).__name__}: {exc}"
-        await session.commit()
-        if job.status == "done":
-            # Retain the source until the result and status are durably committed.
-            with contextlib.suppress(OSError):
-                Path(job.upload_path).unlink(missing_ok=True)
+                break
+        try:
+            cleanup.result()
+        except Exception:
+            get_logger(__name__).exception("cancelled_job_update_failed", job_id=job_id)
+        raise
 
 
 async def process_mgf(upload_path: str, result_path: str) -> dict[str, object]:
