@@ -59,7 +59,7 @@ jobs:
       contents: read
       packages: write
     env:
-      GLYCOMASS_IMAGE: christiantill/glycomass
+      GLYCOMASS_IMAGE: christiantill/glycomass-app
       GLYCOMASS_DEPLOY_HOST: 62.83.18.172
       GLYCOMASS_DEPLOY_DOMAIN: glycomass.com,www.glycomass.com
       KAMAL_REGISTRY_USERNAME: ${{ github.actor }}

@@ -45,7 +45,7 @@ separate artifact-cleanup mechanism.
    at the server. TLS needs working DNS before the deployment can finish.
 4. Install Kamal 2.12.0 (`gem install kamal -v 2.12.0`) on the deploy machine.
 5. Export these deployment settings:
-   - `GLYCOMASS_IMAGE=christiantill/glycomass` (GHCR namespace/image)
+   - `GLYCOMASS_IMAGE=christiantill/glycomass-app` (GHCR namespace/image)
    - `GLYCOMASS_DEPLOY_HOST` (server IP/SSH hostname)
    - `GLYCOMASS_DEPLOY_DOMAIN` (hostname, or comma-separated hostnames for the same app)
    - `KAMAL_REGISTRY_USERNAME` (GitHub account with package access)
@@ -141,7 +141,9 @@ Repository Actions secrets:
 - `GLYCOMASS_DATABASE_URL`: existing production database URL.
 
 GHCR authentication uses the workflow's temporary `GITHUB_TOKEN` with package
-write access. The `glycomass` package must grant this repository Actions access.
+write access. The `glycomass-app` package is created by this workflow and linked to the
+repository. The older manually published `glycomass` package is retained for
+rollback but is no longer used for new deployments.
 Never use `pull_request_target` to execute untrusted PR code with these secrets.
 
 ## Another app on the same server
