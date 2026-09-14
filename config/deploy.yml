@@ -1,0 +1,70 @@
+# Required values deliberately have no production defaults.
+service: glycomass
+image: <%= ENV.fetch("GLYCOMASS_IMAGE") %>
+minimum_version: 2.12.0
+
+servers:
+  web:
+    hosts:
+      - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
+  worker:
+    hosts:
+      - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
+    cmd: worker
+    proxy: false
+    stop_timeout: 330
+
+proxy:
+  ssl: true
+  host: <%= ENV.fetch("GLYCOMASS_DEPLOY_DOMAIN") %>
+  app_port: 8000
+  healthcheck:
+    path: /api/v1/health
+    interval: 3
+    timeout: 5
+
+registry:
+  server: ghcr.io
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+ssh:
+  user: <%= ENV.fetch("GLYCOMASS_DEPLOY_USER", "root") %>
+
+env:
+  clear:
+    GLYCOMASS_ENVIRONMENT: production
+    GLYCOMASS_LOG_JSON: true
+    GLYCOMASS_REDIS_URL: redis://glycomass-redis:6379/0
+    GLYCOMASS_UPLOAD_DIR: /data/uploads
+    GLYCOMASS_RESULT_DIR: /data/results
+  secret:
+    - GLYCOMASS_DATABASE_URL
+
+# Both roles must run on the same host and mount the same persistent storage.
+# Prepare this directory with uid/gid 10001 before the first deploy.
+volumes:
+  - /var/lib/glycomass/files:/data
+
+accessories:
+  postgres:
+    image: postgres:17-alpine
+    host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
+    env:
+      clear:
+        POSTGRES_USER: glycomass
+        POSTGRES_DB: glycomass
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - /var/lib/glycomass/postgres:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
+    cmd: redis-server --appendonly yes
+    directories:
+      - /var/lib/glycomass/redis:/data

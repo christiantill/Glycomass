@@ -49,10 +49,10 @@ The maintainer wants software citation, with Melissa Bärenfänger's ORCID
 0000-0002-2855-924X. Author order follows the original About page. Record a real
 software DOI, version, and release date after publishing an archived release.
 
-License selection is pending discussion of monetization and support. Citation is
-currently a scholarly request. MIT's notice-preservation condition does not
-require paper citations. Do not label custom citation restrictions as standard
-MIT, Apache, or AGPL terms. Confirm rights to license contributions and legacy
+The maintainer selected Apache 2.0, including for future monetization and support.
+Copyright attribution is recorded in `NOTICE`, which is included in source, Python
+packages, and container distributions. Citation remains a scholarly request;
+the standard license does not require paper citations. Confirm rights to license contributions and legacy
 artwork before release; vendored dependencies retain their own licenses.
 
 [GitHub citation files](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files)
@@ -68,8 +68,9 @@ Render is a managed alternative, but its disks cannot be shared across services.
 Separate web and worker services would need shared object storage or a different
 file-transfer design: [Render disk limitations](https://render.com/docs/disks#disk-limitations-and-considerations).
 
-Still needed: production image and deployment config, persistent volumes,
-migrations, upload/result retention, backup/restore verification, live
-Postgres/Redis/worker smoke testing, TLS, and a staged domain cutover with a
+Docker/Kamal configuration and a disposable local integration stack are now in
+`deploy/`; see its README. Still needed on the actual server: upload/result
+retention, backup/restore verification, TLS, and a staged domain cutover with a
 rollback path. Confirm the provider, server/account access, and current hosting
-before provisioning. No server purchase, deployment, or DNS change has occurred.
+before provisioning. The maintainer selected Hetzner/self-managed hosting.
+No server purchase, deployment, or DNS change has occurred.
