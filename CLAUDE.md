@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Active FastAPI workflow
 
-The rewrite lives under `src/glycomass/` (FastAPI app to come). Phase 1 delivers the
+The rewrite lives under `src/glycomass/`. Phase 1 delivers the
 framework-free domain core in `src/glycomass/core/`:
 
 - `composition.py` — `Composition` `[C,H,N,O,S]` value object.

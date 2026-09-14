@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -14,6 +14,7 @@ from glycomass.core.results import Spectrum
 from glycomass.db.models import Permalink
 from glycomass.db.session import get_sessionmaker
 from glycomass.logging_config import get_logger
+from glycomass.schemas import PeptideSequence, ProteinSequence
 from glycomass.web.permalinks import TEMPLATES, compute_result, normalize, save_permalink
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -79,7 +80,7 @@ def citation_page(request: Request) -> HTMLResponse:
 @router.post("/peptide", response_class=HTMLResponse)
 async def peptide_result(
     request: Request,
-    sequence: str = Form(..., min_length=1, max_length=100),
+    sequence: Annotated[PeptideSequence, Form()],
     hex: int = Form(0), hexnac: int = Form(0), fuc: int = Form(0), sia: int = Form(0),
     charge: int = Form(1), carbamidomethyl: bool = Form(False), deamidation: int = Form(0),
 ) -> HTMLResponse:
@@ -100,7 +101,7 @@ def protein_page(request: Request) -> HTMLResponse:
 @router.post("/protein", response_class=HTMLResponse)
 async def protein_result(
     request: Request,
-    sequence: str = Form(..., min_length=1, max_length=100000),
+    sequence: Annotated[ProteinSequence, Form()],
     hex: int = Form(0), hexnac: int = Form(0), fuc: int = Form(0), sia: int = Form(0),
     charge: int = Form(1), deamidation: int = Form(0),
     disulfide_bridges: int = Form(0), resolution: str = Form("medium"),

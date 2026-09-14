@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
     async def invalid_input(request: Request, exc: RequestValidationError) -> Response:
         if request.url.path in {"/protein", "/peptide", "/glycan", "/identifier"}:
             return HTMLResponse(
-                '<div class="error-note">Invalid input. Check required fields. Peptides allow 1–100 characters; proteins allow 1–100,000.</div>',
+                '<div class="error-note">Invalid input. Check required fields. Peptides allow 1–100 characters; proteins allow 1–100,000. Sequences must use supported amino-acid letters (ACDEFGHIKLMNPQRSTVWY); spaces and line breaks are ignored.</div>',
                 status_code=422,
             )
         return await request_validation_exception_handler(request, exc)

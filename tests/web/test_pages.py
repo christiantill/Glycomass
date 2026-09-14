@@ -84,3 +84,20 @@ def test_calculators_have_live_submission_status(client):
         assert 'role="status"' in response.text
         assert 'hx-disabled-elt="find button[type=submit]"' in response.text
         assert 'aria-busy="false"' in response.text
+
+
+def test_sequence_validation_is_shared_by_html_and_api(client):
+    for kind in ("peptide", "protein"):
+        for sequence in (" \t\n", "XXX", "PEPXTIDE", "PEP-TIDE", "ß"):
+            html = client.post('/' + kind, data={"sequence": sequence})
+            api = client.post('/api/v1/calculate/' + kind, json={"sequence": sequence})
+            assert html.status_code == api.status_code == 422
+            assert 'error-note' in html.text
+            assert 'data-spectrum=' not in html.text
+        raw = " pep \n tide "
+        api = client.post('/api/v1/calculate/' + kind, json={"sequence": raw})
+        expected = client.post('/api/v1/calculate/' + kind, json={"sequence": "PEPTIDE"})
+        assert api.status_code == 200
+        assert api.json() == expected.json()
+        html = client.post('/' + kind, data={"sequence": raw})
+        assert html.status_code == 200 and 'data-spectrum=' in html.text
