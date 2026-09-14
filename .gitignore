@@ -2,6 +2,11 @@
 misc.xml
 # dotenv
 .env
+.env.*
+!.env.example
+.kamal/secrets
+*.pem
+*.key
 
 # virtualenv
 .venv
