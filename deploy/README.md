@@ -3,8 +3,8 @@
 The maintainer provisioned a netcup x86-64 server with 8 GB RAM and approximately
 250 GB disk, running Debian 13 minimal. The live site now uses `glycomass.com` and `www.glycomass.com`;
 `staging.glycomass.com` is an alias of the same app, not an isolated preview.
-Heroku is retained temporarily for rollback; see [cutover record](live-cutover.md). Docker officially supports Debian 13. The same deployment also works on
-other Docker-capable VPS providers; it has no Hetzner-specific dependencies.
+The former Heroku app has been deleted. The deployment can also run on other
+Docker-capable VPS providers.
 
 ## Architecture
 
@@ -29,7 +29,7 @@ Production does not use that Compose file.
 ## Server setup and first deployment
 
 1. Create the server with an SSH public key. Allow inbound 80/443 and restrict SSH
-   to administrator addresses using the provider firewall. Enable server backups.
+   to administrator addresses using the provider firewall.
 2. Create the shared file directory on the host:
    `install -d -o 10001 -g 10001 -m 0750 /var/lib/glycomass/files`.
 3. Choose a staging hostname (for example `staging.glycomass.com`) and point it
@@ -60,20 +60,20 @@ network, which must not contain untrusted workloads.
 Uvicorn trusts forwarded headers from that network so generated asset URLs use
 HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
 
-## Operational checklist
+## Operations
 
-- Verify all calculators, a saved permalink after restart, and a real upload →
-  worker → download flow on staging. Load-test representative MGF sizes.
-- Implement a result/upload retention policy and monitoring for disk growth;
-  completed result files currently have no automatic expiry.
-- A one-off PostgreSQL/file backup is saved on the maintainer’s computer and
-  its database restore was tested. Recurring/cloud backups were deferred at the
-  owner’s request. Keep saved permalinks in mind when revisiting this.
-- Add deployment CI and a dedicated deploy credential after server access is
-  established. This preparation does not automatically deploy on merge.
-- Before changing production DNS, record existing records, lower TTL, test TLS,
-  and establish a rollback window. Keep Heroku available through that window;
-  disable its GitHub autodeploy before replacing repository history.
+- After deployment, run `python3 deploy/smoke.py https://glycomass.com` to check
+  calculators, saved links, and upload → worker → download processing. This
+  creates test records in the selected service.
+- Browser regressions live in `tests/browser/check-spectra.cjs`; JavaScript unit
+  checks run with `node --test tests/browser/spectrum-paths.cjs`.
+- Completed results have no automatic expiry. Monitor disk usage; retention
+  is a follow-up, not an enabled feature.
+- A one-off PostgreSQL/file backup was saved on the maintainer's computer and
+  restored successfully into a disposable database. Recurring/cloud backups
+  were deferred. Back up both the database and shared files before risky changes.
+- Deployments are manual. Merging a PR does not deploy it.
+- Roll back application releases with Kamal; Heroku is no longer available.
 
 Kamal application rollback changes the image; it does not undo migrations or
 restore lost data. Keep migrations compatible with the previous image. Do not
@@ -81,7 +81,7 @@ delete accessory storage during application rollback.
 
 ## Slow-operation logs
 
-See [performance timings](../docs/03_specs/performance-observability.md) for
+See [performance timings](../docs/performance.md) for
 algorithm costs, workload fields, thresholds, and initial measurements. Web and
 worker containers warn when an instrumented phase takes at least one second.
 
@@ -91,3 +91,16 @@ For this existing service, deploy with:
 `GLYCOMASS_DEPLOY_DOMAIN=glycomass.com,www.glycomass.com,staging.glycomass.com`.
 All three names route to the same web/worker/database deployment. Changes deployed
 here affect the live site; an isolated preview would require a separate service.
+
+## DNS
+
+Namecheap manages the live domain. The current web records are:
+
+| Type | Host | Value |
+| --- | --- | --- |
+| A | @ | 62.83.18.172 |
+| CNAME | www | glycomass.com |
+| A | staging | 62.83.18.172 |
+
+Kamal manages HTTPS certificates for all three hostnames. Preserve Zoho MX and
+mail/verification TXT records when changing web DNS.
