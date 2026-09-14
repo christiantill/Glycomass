@@ -4,7 +4,8 @@ Expensive algorithm phases emit structured `operation_timing` logs. Operations
 lasting at least `GLYCOMASS_SLOW_OPERATION_MS` (default **1000 ms**) emit WARNING;
 faster operations emit DEBUG. Set `GLYCOMASS_LOG_LEVEL=DEBUG` to inspect every
 phase. A threshold of zero temporarily logs all instrumented phases at WARNING.
-Keep INFO/WARNING enabled to receive slow-operation warnings.
+Keep INFO/WARNING enabled to receive slow-operation warnings. For Kamal, set
+these variables under `env.clear` in `config/deploy.yml` and redeploy.
 
 Events include `operation`, wall-clock `elapsed_ms`, `outcome`, and workload
 counts. They do not include sequences, compositions, file contents, or filenames.
@@ -46,3 +47,12 @@ and pass numerical parity checks. MGF parsing and output construction still reta
 the whole file and selected results; streaming is the next memory improvement to
 investigate with representative large datasets. Timing logs alone cannot detect
 high memory consumption.
+
+Staging observation after deployment: a tiny synthetic identifier job emitted
+`identifier.job` at **1306.116 ms**. A separate diagnostic of the same synthetic
+input measured the child phases in tens of milliseconds (reading about 41 ms,
+other phases below 1 ms each). This suggests interpreter/library startup overhead
+is significant for small jobs; the two runs are not an exact phase breakdown.
+Investigate a reusable, bounded process pool if small-job latency matters, while
+preserving cancellation and memory isolation. Do not move the computation back
+onto the worker event loop.
