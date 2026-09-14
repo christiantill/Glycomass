@@ -20,7 +20,7 @@ const assert=require('node:assert/strict');
   await page.locator('button[type=submit]').click();
   await page.waitForFunction(()=>document.querySelector('.calc-form').getAttribute('aria-busy')==='true');
   assert.equal(await page.locator('button[type=submit]').isDisabled(),true);
-  assert.equal(await page.locator('[role=status]').textContent(),'Calculating…');
+  assert.equal(await page.locator('.calculation-status').textContent(),'Calculating…');
   const response=await responsePromise;
   await page.waitForFunction(()=>document.querySelector('[data-drawn="1"]') && document.querySelector('.calc-form').getAttribute('aria-busy')==='false');
   const bytes=Number(response.headers()['content-length']);
@@ -32,6 +32,45 @@ const assert=require('node:assert/strict');
     const {chart,profile}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
     return chart.series[1].paths!==isotopeStickPaths && JSON.stringify(chart.data)===JSON.stringify([profile.mz,profile.intensity]);
   }));
+  const boxes=await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).state.labelBoxes);
+  assert(boxes.length>0);
+  for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++) {
+    const a=boxes[i],b=boxes[j];
+    assert(!(a.x<b.x+b.width && a.x+a.width>b.x && a.y<b.y+b.height && a.y+a.height>b.y));
+  }
+  await page.locator('.result-panel').screenshot({path:'/tmp/glycomass-labelled-'+kind+'.png'});
+  await page.evaluate(()=>{
+    const {chart,peaks}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    chart.setScale('x',{min:peaks[0][0]-.1,max:peaks[1][0]+.1});
+  });
+  assert(await page.evaluate(()=>{
+    const {chart,state}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    return state.labelBoxes.every(b=>b.mz>=chart.scales.x.min && b.mz<=chart.scales.x.max);
+  }));
+  await page.getByRole('button',{name:'Reset zoom',exact:true}).click();
+  await page.getByRole('button',{name:'Show labels',exact:true}).click();
+  assert.equal(await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).state.labelBoxes.length),0);
+  await page.getByRole('button',{name:'Show labels',exact:true}).click();
+  await page.locator('.peak-data summary').click();
+  const peakCount=await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).peaks.length);
+  assert.equal(await page.locator('.peak-table tbody tr').count(),peakCount);
+  assert(await page.locator('.peak-table tbody tr[hidden]').count()>0);
+  await page.getByRole('button',{name:'Show all peaks',exact:true}).click();
+  assert.equal(await page.locator('.peak-table tbody tr[hidden]').count(),0);
+  if(kind==='glycan') {
+    await page.context().grantPermissions(['clipboard-read','clipboard-write']);
+    await page.getByRole('button',{name:'Copy table',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('.peak-export-status').textContent.includes('Copied'));
+    const copied=await page.evaluate(()=>navigator.clipboard.readText());
+    assert.equal(copied.trim().split('\n').length,peakCount+1);
+    const downloadPromise=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Download CSV',exact:true}).click();
+    const download=await downloadPromise;
+    const fs=require('node:fs');
+    const csv=fs.readFileSync(await download.path(),'utf8');
+    assert.equal(csv,copied.replaceAll('\t',','));
+  }
+  await page.locator('.peak-data summary').click();
   await page.getByRole('button',{name:'Peaks',exact:true}).click();
   const state=await page.evaluate(()=>{
     const {chart,peaks}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
@@ -63,7 +102,10 @@ const assert=require('node:assert/strict');
  await page.setViewportSize({width:390,height:844});
  await page.waitForTimeout(100);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.locator('.peak-data summary').click();
+ await page.locator('.result-panel').screenshot({path:'/tmp/glycomass-table-mobile.png'});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: visible peak strokes and empty gaps, immediate status, disabled submit, compressed response, toggles, repeated calculation, mobile sizing');
+ console.log('PASS: peak labels and zoom, table/copy/CSV, peak strokes, progress, compressed response, toggles, repeated calculation, mobile sizing');
 })().catch(error=>{console.error(error);process.exit(1)});
