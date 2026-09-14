@@ -20,8 +20,12 @@ peaks, and copy or download the peak table. Saved calculation links let you shar
 your inputs. The [glycopeptide identifier](https://glycomass.com/identifier)
 processes uploaded MGF files and provides a downloadable result.
 
-These are theoretical calculations. See the [engine notes](docs/engine.md) for
-model assumptions, validation scope, and known limitations.
+## Research use
+
+Glycomass is research software. Calculator outputs are regression-tested against the original implementation, but this does not constitute independent scientific validation. Please verify results for your intended application.
+
+See the [engine notes](docs/engine.md) for model assumptions, validation scope,
+and known limitations.
 
 ## Cite Glycomass
 

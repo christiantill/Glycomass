@@ -364,3 +364,5 @@ footer{border-top:1px solid var(--line-soft);margin-top:clamp(3rem,6vw,5rem);pad
 .peak-table thead th{position:sticky;top:0;background:var(--navy-950);font-family:var(--font-sans)}
 .peak-table th:first-child{text-align:left}
 .peak-export-status:empty{display:none}
+
+.research-note{max-width:85ch;color:var(--muted);font-size:.875rem;line-height:1.7}
