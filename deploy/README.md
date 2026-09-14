@@ -1,12 +1,10 @@
-# Hetzner deployment
+# VPS deployment (netcup)
 
-The maintainer selected one self-managed Hetzner server. Start with an x86-64
-CX33 (4 vCPU, 8 GB RAM, 80 GB disk) if available, Ubuntu 24.04, in Germany.
-This is an initial sizing estimate, not a large-file load-test result.
-The public listing marked CX33 unavailable on 2026-09-14; check Console stock.
-Current published base price: €8.49/month excluding VAT, IPv4, and backups.
-[Specs](https://www.hetzner.com/cloud/cost-optimized/),
-[pricing](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/).
+The maintainer provisioned a netcup x86-64 server with 8 GB RAM and approximately
+250 GB disk, running Debian 13 minimal. Initial deployment uses
+`staging.glycomass.com`; the main domain remains on the existing service until
+cutover. Docker officially supports Debian 13. The same deployment also works on
+other Docker-capable VPS providers; it has no Hetzner-specific dependencies.
 
 ## Architecture
 
@@ -31,7 +29,7 @@ Production does not use that Compose file.
 ## Server setup and first deployment
 
 1. Create the server with an SSH public key. Allow inbound 80/443 and restrict SSH
-   to administrator addresses using a Hetzner firewall. Enable server backups.
+   to administrator addresses using the provider firewall. Enable server backups.
 2. Create the shared file directory on the host:
    `install -d -o 10001 -g 10001 -m 0750 /var/lib/glycomass/files`.
 3. Choose a staging hostname (for example `staging.glycomass.com`) and point it
@@ -59,6 +57,8 @@ web replicas or add destructive migrations without revising migration handling.
 The worker must only consume jobs after the initial schema is ready; verify web
 startup before submitting the first upload. Redis is private to the Docker
 network, which must not contain untrusted workloads.
+Uvicorn trusts forwarded headers from that network so generated asset URLs use
+HTTPS behind kamal-proxy. Do not publish port 8000 directly on the host.
 
 ## Before production cutover
 
