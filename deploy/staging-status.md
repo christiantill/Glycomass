@@ -14,7 +14,7 @@
   left unchanged.
 - Kamal accessories `glycomass-postgres` and `glycomass-redis` are running on
   Docker network `kamal`, with persistent host storage and no published ports.
-- Image `ghcr.io/christiantill/glycomass:542fef7e86647b355fd5fc02d6ac745a8bb7fea6`
+- Image `ghcr.io/christiantill/glycomass:aea063a43c7d41e7a9f1edaad792f3ea92ef2f8a`
   was built from the committed rewrite; registry package remains private.
 - Kamal-managed web and worker roles now serve `https://staging.glycomass.com`
   through kamal-proxy. Both mount `/var/lib/glycomass/files`, using root-readable
@@ -30,7 +30,7 @@ Public DNS and the server resolver return the new IP. Some resolvers initially
 retained the earlier NXDOMAIN response; no apex/www records were changed.
 
 The deployment completed through Kamal using image revision
-`542fef7e86647b355fd5fc02d6ac745a8bb7fea6`. HTTPS serves a valid certificate for
+`aea063a43c7d41e7a9f1edaad792f3ea92ef2f8a`. HTTPS serves a valid certificate for
 the staging hostname (initial certificate expires 2026-12-13); kamal-proxy manages
 renewal. HTTP redirects to HTTPS.
 
@@ -62,3 +62,10 @@ The currently deployed image includes the standard LICENSE and an attribution
 NOTICE naming Melissa Bärenfänger and Christian Till. Its installed package
 metadata declares `Apache-2.0`. Wheel/source archive contents were verified,
 and the complete HTTPS deployment smoke passed after this image was deployed.
+
+## Performance instrumentation
+
+Revision `aea063a` adds configurable slow-operation timings. Calculator and
+child-process phase events were verified in the deployed image; a real queued
+synthetic job produced a 1306 ms warning in the worker's Docker logs. Complete
+HTTPS smoke passed with the instrumented web and worker roles.
