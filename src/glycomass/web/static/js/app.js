@@ -191,7 +191,8 @@ document.body.addEventListener("click", async (event) => {
     case "labels":
       entry.state.labels = !entry.state.labels;
       button.setAttribute("aria-pressed", String(entry.state.labels));
-      entry.chart.redraw();
+      // Labels are an overlay: rebuilding paths re-applies x-range padding.
+      entry.chart.redraw(false);
       break;
     case "reset":
       entry.chart.setData(entry.chart.data);

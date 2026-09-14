@@ -47,6 +47,15 @@ const assert=require('node:assert/strict');
     const {chart,state}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
     return state.labelBoxes.every(b=>b.mz>=chart.scales.x.min && b.mz<=chart.scales.x.max);
   }));
+  const zoomBefore=await page.evaluate(()=>{
+    const {chart}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    return [chart.scales.x.min,chart.scales.x.max,chart.width];
+  });
+  for(let toggle=0;toggle<6;toggle++) await page.getByRole('button',{name:'Show labels',exact:true}).click();
+  assert.deepEqual(await page.evaluate(()=>{
+    const {chart}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    return [chart.scales.x.min,chart.scales.x.max,chart.width];
+  }),zoomBefore);
   await page.getByRole('button',{name:'Reset zoom',exact:true}).click();
   await page.getByRole('button',{name:'Show labels',exact:true}).click();
   assert.equal(await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).state.labelBoxes.length),0);
