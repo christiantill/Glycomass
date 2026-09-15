@@ -76,3 +76,5 @@ def test_glycan_custom_modification_api():
     assert ok.json()["composition"] == "C60 H98 N4 O46 S0"
     bad = client.post("/api/v1/calculate/glycan", json={"hex": 5, "hexnac": 4, "custom_modification": "C2X"})
     assert bad.status_code == 422
+    huge = client.post("/api/v1/calculate/glycan", json={"hex": 5, "custom_modification": "C99999999999999999999"})
+    assert huge.status_code == 422
