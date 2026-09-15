@@ -51,3 +51,4 @@ class GlycanRequest(BaseModel):
     charge: int = 1
     sodium: bool = False
     modification: str = "None"
+    custom_modification: str = ""

@@ -119,3 +119,18 @@ def test_peracetyl_aliases_share_slug_and_roundtrip_selection(client):
     slug = re.search(r"/c/([0-9a-f]{12})", response.text).group(1)
     page = client.get(f"/c/{slug}")
     assert '<option value="Peracetly" selected>Peracetyl</option>' in page.text
+
+
+def test_custom_modification_slugs_and_roundtrip(client):
+    import re
+
+    base = {"hex": 5, "hexnac": 4}
+    assert P.compute_slug("glycan", {**base, "custom_modification": ""}) == "adb4375565e2"
+    custom = P.compute_slug("glycan", {**base, "custom_modification": "C2H5O"})
+    assert custom != "adb4375565e2"
+    assert P.compute_slug("glycan", {**base, "custom_modification": " C2 H5 O "}) == custom
+    response = client.post("/glycan", data={**base, "custom_modification": "-C2-H6"})
+    slug = re.search(r"/c/([0-9a-f]{12})", response.text).group(1)
+    page = client.get(f"/c/{slug}")
+    assert 'value="-C2-H6"' in page.text
+    assert "C60 H98 N4 O46 S0" in page.text

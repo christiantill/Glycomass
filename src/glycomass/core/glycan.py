@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from glycomass.core import constants as K
-from glycomass.core.composition import Composition
-from glycomass.core.errors import NegativeIonSodiumError
+from glycomass.core.composition import Composition, parse_composition_delta
+from glycomass.core.errors import InvalidCompositionError, NegativeIonSodiumError
 from glycomass.core.isotopes import isotope_profile
 from glycomass.core.results import MassResult
 
@@ -19,6 +19,7 @@ _MODS: dict[str, tuple[Composition, Composition, Composition, Composition, Compo
     "ReducedEnd": (K.HEX, K.HEXNAC, K.FUC, K.SIA, K.REDUCED_END),
     "Label_2AB": (K.HEX, K.HEXNAC, K.FUC, K.SIA, K.LABEL_2AB),
     "Label_2AA": (K.HEX, K.HEXNAC, K.FUC, K.SIA, K.LABEL_2AA),
+    "Label_ProA": (K.HEX, K.HEXNAC, K.FUC, K.SIA, K.LABEL_PROCAINAMIDE),
 }
 
 
@@ -31,6 +32,7 @@ def glycan_mass(
     charge: int = 1,
     sodium: bool = False,
     modification: str = "none",
+    custom_modification: str = "",
 ) -> MassResult:
     if sodium and charge <= 0:
         raise NegativeIonSodiumError(
@@ -38,6 +40,15 @@ def glycan_mass(
         )
     h, hn, f, s, extra = _MODS.get(modification, _MODS["none"])
     comp = K.WATER + h * hex + hn * hexnac + f * fuc + s * sia + extra
+    if custom_modification.strip():
+        comp = comp + parse_composition_delta(custom_modification)
+        negative = [e for e, n in comp.counts.items() if n < 0]
+        if negative:
+            raise InvalidCompositionError(
+                f"Custom modification removes more {', '.join(negative)} than the glycan contains."
+            )
+        if not any(comp.counts.values()):
+            raise InvalidCompositionError("Custom modification leaves no atoms to calculate.")
 
     mz_shift = 0.0
     if sodium:

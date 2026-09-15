@@ -68,3 +68,11 @@ def test_calculator_request_body_limit():
 def test_streamed_calculator_body_limit_without_content_length():
     response = client.post('/api/v1/calculate/protein', content=iter([b'{"sequence":"', b'A'*(1024*1024), b'"}']), headers={'Content-Type':'application/json'})
     assert response.status_code == 413
+
+
+def test_glycan_custom_modification_api():
+    ok = client.post("/api/v1/calculate/glycan", json={"hex": 5, "hexnac": 4, "custom_modification": "-C2-H6"})
+    assert ok.status_code == 200
+    assert ok.json()["composition"] == "C60 H98 N4 O46 S0"
+    bad = client.post("/api/v1/calculate/glycan", json={"hex": 5, "hexnac": 4, "custom_modification": "C2X"})
+    assert bad.status_code == 422

@@ -59,6 +59,9 @@ PERACETYL_ADD = C(C=4, H=4, N=0, O=2, S=0)
 REDUCED_END = C(C=0, H=2, N=0, O=0, S=0)
 LABEL_2AB = C(C=7, H=8, N=2, O=0, S=0)
 LABEL_2AA = C(C=7, H=7, N=1, O=1, S=0)
+# Procainamide (C13H21N3O) by reductive amination: + label - H2O (Schiff base) + H2
+# (reduction) = + C13H21N3, +219.1735 Da monoisotopic (Waters app note 720004212).
+LABEL_PROCAINAMIDE = C(C=13, H=21, N=3, O=0, S=0)
 
 # Sodium adduct shift constants (m/z): swap a proton for Na+.
 SODIUM_MASS = 22.989770

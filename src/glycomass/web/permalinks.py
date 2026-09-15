@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glycomass.core import MassResult, glycan_mass, peptide_mass, protein_mass
+from glycomass.core.composition import canonical_composition_text
 from glycomass.db.models import Permalink
 
 # Default form inputs per calculator — drive the empty pages AND fill missing keys
@@ -23,7 +24,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     },
     "glycan": {
         "hex": 5, "hexnac": 4, "fuc": 0, "sia": 0,
-        "charge": 1, "sodium": False, "modification": "None",
+        "charge": 1, "sodium": False, "modification": "None", "custom_modification": "",
     },
 }
 TEMPLATES = {"peptide": "peptide.html", "protein": "protein.html", "glycan": "glycan.html"}
@@ -37,13 +38,16 @@ def normalize(kind: str, inputs: dict[str, Any]) -> dict[str, Any]:
         out["sequence"] = str(out["sequence"]).upper()
     if kind == "glycan" and out["modification"] == "Peracetyl":
         out["modification"] = "Peracetly"  # preserve existing URLs and template value
+    if kind == "glycan":
+        out["custom_modification"] = canonical_composition_text(str(out["custom_modification"]))
     return out
 
 
 def compute_slug(kind: str, inputs: dict[str, Any]) -> str:
-    payload = json.dumps(
-        {"kind": kind, **normalize(kind, inputs)}, sort_keys=True, separators=(",", ":")
-    )
+    norm = normalize(kind, inputs)
+    if norm.get("custom_modification") == "":
+        del norm["custom_modification"]  # keep slugs from before custom modifications stable
+    payload = json.dumps({"kind": kind, **norm}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode()).hexdigest()[:12]
 
 
@@ -63,6 +67,7 @@ def compute_result(kind: str, inputs: dict[str, Any]) -> MassResult:
     return glycan_mass(
         hex=i["hex"], hexnac=i["hexnac"], fuc=i["fuc"], sia=i["sia"],
         charge=i["charge"], sodium=i["sodium"], modification=i["modification"],
+        custom_modification=i["custom_modification"],
     )
 
 

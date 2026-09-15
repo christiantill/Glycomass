@@ -8,7 +8,6 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
 
-from glycomass.core import NegativeIonSodiumError
 from glycomass.core.errors import GlycomassError
 from glycomass.core.results import Spectrum
 from glycomass.db.models import Permalink
@@ -133,14 +132,16 @@ async def glycan_result(
     request: Request,
     hex: int = Form(0), hexnac: int = Form(0), fuc: int = Form(0), sia: int = Form(0),
     charge: int = Form(1), sodium: bool = Form(False), modification: str = Form("None"),
+    custom_modification: str = Form(""),
 ) -> HTMLResponse:
     inputs: dict[str, Any] = {
         "hex": hex, "hexnac": hexnac, "fuc": fuc, "sia": sia,
         "charge": charge, "sodium": sodium, "modification": modification,
+        "custom_modification": custom_modification,
     }
     try:
         result = await run_in_threadpool(compute_result, "glycan", inputs)
-    except NegativeIonSodiumError as exc:
+    except GlycomassError as exc:
         return templates.TemplateResponse(request, "_error.html", {"message": str(exc)})
     slug = await _try_save("glycan", inputs)
     return templates.TemplateResponse(request, "_result.html", {"result": result, "slug": slug})
