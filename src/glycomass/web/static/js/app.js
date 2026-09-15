@@ -46,7 +46,17 @@ function isotopeStickPaths(plot, seriesIndex, first, last) {
 }
 
 const spectrumCharts = new WeakMap();
+// Canvas colours come from CSS tokens so charts follow the active theme.
+const chartColors = {};
+function readChartColors() {
+  const style = getComputedStyle(document.documentElement);
+  for (const name of ["line", "axis", "grid", "label-bg", "label-fg"]) {
+    chartColors[name] = style.getPropertyValue(`--chart-${name}`).trim();
+  }
+}
+
 function drawSpectra(root) {
+  readChartColors();
   root.querySelectorAll("[data-spectrum]").forEach((el) => {
     if (spectrumCharts.has(el)) return;
     const data = JSON.parse(el.getAttribute("data-spectrum"));
@@ -71,21 +81,21 @@ function drawSpectra(root) {
         plot.ctx.textAlign = "center";
         plot.ctx.textBaseline = "middle";
         for (const box of state.labelBoxes) {
-          plot.ctx.fillStyle = "#08142d";
+          plot.ctx.fillStyle = chartColors["label-bg"];
           plot.ctx.fillRect(box.x,box.y,box.width,box.height);
-          plot.ctx.fillStyle = "#dce5f7";
+          plot.ctx.fillStyle = chartColors["label-fg"];
           plot.ctx.fillText(box.text,box.x+box.width/2,box.y+box.height/2);
         }
         plot.ctx.restore();
       }]},
       axes: [
-        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "m/z", space: 85 },
-        { stroke: "#9aa7c7", grid: { stroke: "rgba(255,255,255,0.06)" }, label: "Relative intensity (%)" },
+        { stroke: () => chartColors.axis, grid: { stroke: () => chartColors.grid }, label: "m/z", space: 85 },
+        { stroke: () => chartColors.axis, grid: { stroke: () => chartColors.grid }, label: "Relative intensity (%)" },
       ],
       series: [
         { label: "m/z", value: (_, value) => value == null ? "—" : value.toFixed(4) },
         {
-          label: "Intensity", stroke: "#FFD009", width: 1.5,
+          label: "Intensity", stroke: () => chartColors.line, width: 1.5,
           paths: profile ? uPlot.paths.linear() : isotopeStickPaths, fill: null, points: { show: false },
           value: (_, value) => value == null ? "—" : value.toFixed(2) + "%",
         },
@@ -141,6 +151,16 @@ document.body.addEventListener("htmx:beforeCleanupElement", (event) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => drawSpectra(document));
+// uPlot evaluates stroke callbacks on every draw, so recolouring keeps zoom and mode.
+document.addEventListener("glycomass:themechange", () => {
+  readChartColors();
+  document.querySelectorAll("[data-spectrum]").forEach((el) => {
+    const entry = spectrumCharts.get(el);
+    if (!entry) return;
+    entry.chart.root.querySelectorAll(".u-marker").forEach((marker) => { marker.style.borderColor = chartColors.line; });
+    entry.chart.redraw(false);
+  });
+});
 document.body.addEventListener("htmx:afterSwap", (e) => drawSpectra(e.target));
 
 // Copy a permalink to the clipboard (progressive enhancement; the anchor still works).
