@@ -44,6 +44,7 @@ class Composition:
 
 
 CUSTOM_COMPOSITION_MAX_LENGTH = 64
+CUSTOM_COMPOSITION_MAX_ATOMS = 10_000
 _DELTA_SHAPE = re.compile(r"(?:[+-]?[A-Z][a-z]?\d*)+")
 _DELTA_TOKEN = re.compile(r"([+-]?)([A-Z][a-z]?)(\d*)")
 
@@ -81,4 +82,9 @@ def parse_composition_delta(text: str) -> Composition:
                 f"Unsupported element '{element}' in custom modification; use C, H, N, O, S."
             )
         counts[element] += sign * int(count or 1)
+        if abs(counts[element]) > CUSTOM_COMPOSITION_MAX_ATOMS:
+            raise InvalidCompositionError(
+                f"Custom modification changes {element} by more than "
+                f"{CUSTOM_COMPOSITION_MAX_ATOMS:,} atoms."
+            )
     return Composition(**counts)

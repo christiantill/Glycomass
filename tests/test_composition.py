@@ -52,6 +52,8 @@ def test_parse_composition_delta(text, counts):
     ("C-", "Could not read"),
     ("C2X", "Unsupported element 'X'"),
     ("C" * 65, "limited to 64"),
+    ("C99999999999999999999", "more than 10,000"),
+    ("H6000H6000", "more than 10,000"),
 ])
 def test_parse_composition_delta_rejects(text, message):
     with pytest.raises(InvalidCompositionError, match=message):
