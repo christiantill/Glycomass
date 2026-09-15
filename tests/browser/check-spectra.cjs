@@ -1,10 +1,31 @@
 // Run with PLAYWRIGHT_MODULE and CHROMIUM_PATH when Playwright is installed externally.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert=require('node:assert/strict');
+async function strokePixels(page){
+  return page.evaluate(()=>{
+    const {chart,peaks}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
+    const canvas=document.querySelector('[data-spectrum] canvas');
+    const ctx=canvas.getContext('2d');
+    const base=chart.valToPos(0,'y',true);
+    const top=chart.valToPos(100,'y',true);
+    const line=getComputedStyle(document.documentElement).getPropertyValue('--chart-line').trim();
+    const target=[1,3,5].map(i=>parseInt(line.slice(i,i+2),16));
+    function lineAt(mz){
+      const x=Math.round(chart.valToPos(mz,'x',true));
+      const data=ctx.getImageData(x-1,Math.ceil(top),3,Math.max(1,Math.floor(base-top)-3)).data;
+      let count=0;
+      for(let i=0;i<data.length;i+=4) if(data[i+3]>100 && target.every((c,k)=>Math.abs(data[i+k]-c)<60)) count++;
+      return count;
+    }
+    return {line,stick:chart.series[1].paths===isotopeStickPaths,min:chart.scales.y.min,
+      peakPixels:lineAt(peaks[0][0]),gapPixels:lineAt((peaks[0][0]+peaks[1][0])/2)};
+  });
+}
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,
    headless:true,args:process.env.HOST_RESOLVER_RULES ? ['--host-resolver-rules='+process.env.HOST_RESOLVER_RULES] : []});
- const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ // Dark is emulated explicitly; headless Chromium otherwise reports a light OS preference.
+ const page=await browser.newPage({viewport:{width:1440,height:1000},colorScheme:'dark'});
  await page.route('https://fonts.googleapis.com/**',route=>route.abort());
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const base=process.env.BASE_URL || 'http://127.0.0.1:8765';
@@ -81,22 +102,8 @@ const assert=require('node:assert/strict');
   }
   await page.locator('.peak-data summary').click();
   await page.getByRole('button',{name:'Peaks',exact:true}).click();
-  const state=await page.evaluate(()=>{
-    const {chart,peaks}=spectrumCharts.get(document.querySelector('[data-spectrum]'));
-    const canvas=document.querySelector('[data-spectrum] canvas');
-    const ctx=canvas.getContext('2d');
-    const base=chart.valToPos(0,'y',true);
-    const top=chart.valToPos(100,'y',true);
-    function goldAt(mz){
-      const x=Math.round(chart.valToPos(mz,'x',true));
-      const data=ctx.getImageData(x-1,Math.ceil(top),3,Math.max(1,Math.floor(base-top)-3)).data;
-      let count=0;
-      for(let i=0;i<data.length;i+=4) if(data[i]>180 && data[i+1]>130 && data[i+2]<80 && data[i+3]>100) count++;
-      return count;
-    }
-    return {stick:chart.series[1].paths===isotopeStickPaths,min:chart.scales.y.min,
-      peakPixels:goldAt(peaks[0][0]),gapPixels:goldAt((peaks[0][0]+peaks[1][0])/2)};
-  });
+  const state=await strokePixels(page);
+  assert.equal(state.line,'#FFD009');
   assert(state.stick && state.min===0 && state.peakPixels>10 && state.gapPixels===0,JSON.stringify(state));
   await page.locator('.result-panel').screenshot({path:'/tmp/glycomass-verified-'+kind+'.png'});
   await page.getByRole('button',{name:'Profile',exact:true}).click();
@@ -108,13 +115,42 @@ const assert=require('node:assert/strict');
   await page.waitForFunction(()=>document.querySelector('.calc-form').getAttribute('aria-busy')==='false');
   console.log(kind,JSON.stringify({elapsedMs:Date.now()-started,compressedBytes:bytes,...state}));
  }
+ // Light theme: the toggle overrides the OS preference, recolours live charts, and persists.
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
+ await page.getByRole('button',{name:'Peaks',exact:true}).click();
+ const zoomDark=await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).chart.scales.x.min);
+ await page.getByRole('button',{name:'Switch to light theme',exact:true}).click();
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'light');
+ assert.equal(await page.locator('[data-theme-toggle]').getAttribute('aria-label'),'Switch to dark theme');
+ const light=await strokePixels(page);
+ assert.equal(light.line,'#a87a00');
+ assert(light.stick && light.peakPixels>10 && light.gapPixels===0,JSON.stringify(light));
+ assert.equal(await page.evaluate(()=>spectrumCharts.get(document.querySelector('[data-spectrum]')).chart.scales.x.min),zoomDark);
+ await page.locator('.result-panel').screenshot({path:'/tmp/glycomass-light-result.png'});
+ await page.goto(base+'/glycan');
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'light');
+ await page.screenshot({path:'/tmp/glycomass-light-glycan.png'});
+ await page.goto(base+'/');
+ await page.screenshot({path:'/tmp/glycomass-light-home.png'});
+ const osLight=await browser.newPage({colorScheme:'light'});
+ await osLight.goto(base+'/');
+ assert.equal(await osLight.evaluate(()=>document.documentElement.dataset.theme),'light');
+ await osLight.close();
+ await page.goto(base+'/protein');
+ await page.locator('button[type=submit]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-drawn="1"]'));
  await page.setViewportSize({width:390,height:844});
  await page.waitForTimeout(100);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.locator('.peak-data summary').click();
  await page.locator('.result-panel').screenshot({path:'/tmp/glycomass-table-mobile.png'});
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.getByRole('button',{name:'Menu'}).click();
+ await page.getByRole('button',{name:'Switch to dark theme',exact:true}).click();
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
+ assert.equal(await page.locator('.theme-toggle-text').textContent(),'Light theme');
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: peak labels and zoom, table/copy/CSV, peak strokes, progress, compressed response, toggles, repeated calculation, mobile sizing');
+ console.log('PASS: light/dark theme toggle and persistence, peak labels and zoom, table/copy/CSV, peak strokes, progress, compressed response, toggles, repeated calculation, mobile sizing');
 })().catch(error=>{console.error(error);process.exit(1)});
