@@ -116,3 +116,14 @@ def test_sitemap_lists_current_public_routes(client):
     assert "https://glycomass.com/glycan" in urls
     for url in urls:
         assert client.get(url.replace("https://glycomass.com", "")).status_code == 200
+
+
+def test_glycan_custom_modification_result_and_error(client):
+    ok = client.post("/glycan", data={"hex": 3, "hexnac": 4, "fuc": 1, "charge": 2,
+                                      "modification": "Label_ProA"})
+    assert "841.8663" in ok.text and "C69 H115 N7 O40 S0" in ok.text
+    custom = client.post("/glycan", data={"hex": 5, "hexnac": 4, "custom_modification": "C2H5O-H2O"})
+    assert "C64 H107 N4 O46 S0" in custom.text
+    bad = client.post("/glycan", data={"hex": 5, "hexnac": 4, "custom_modification": "Na"})
+    assert bad.status_code == 200
+    assert "error-note" in bad.text and "Unsupported element" in bad.text

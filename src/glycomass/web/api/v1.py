@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 
 from glycomass.core import (
     MassResult,
-    NegativeIonSodiumError,
     glycan_mass,
     peptide_mass,
     protein_mass,
@@ -46,6 +45,7 @@ def calculate_glycan(req: GlycanRequest) -> MassResult:
         return glycan_mass(
             hex=req.hex, hexnac=req.hexnac, fuc=req.fuc, sia=req.sia,
             charge=req.charge, sodium=req.sodium, modification=req.modification,
+            custom_modification=req.custom_modification,
         )
-    except NegativeIonSodiumError as exc:
+    except GlycomassError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

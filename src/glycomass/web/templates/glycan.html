@@ -13,10 +13,14 @@
       <div><label for="glycan-charge">Charge</label><input id="glycan-charge" type="number" name="charge" value="{{ inputs.charge }}"></div>
       <div><label for="glycan-modification">Modification</label>
         <select id="glycan-modification" name="modification">
-          {% for m in ["None", "Permethyl", "Peracetly", "ReducedEnd", "Label_2AB", "Label_2AA"] %}
-          <option value="{{ m }}" {% if inputs.modification == m %}selected{% endif %}>{{ "Peracetyl" if m == "Peracetly" else m }}</option>
+          {% for m, label in [("None", "None"), ("Permethyl", "Permethyl"), ("Peracetly", "Peracetyl"), ("ReducedEnd", "ReducedEnd"), ("Label_2AB", "Label_2AB"), ("Label_2AA", "Label_2AA"), ("Label_ProA", "Procainamide (ProA)")] %}
+          <option value="{{ m }}" {% if inputs.modification == m %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
+      </div>
+      <div class="calc-wide"><label for="glycan-custom">Custom modification (C, H, N, O, S)</label>
+        <input id="glycan-custom" type="text" name="custom_modification" value="{{ inputs.custom_modification }}" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. C2H5O or -C2-H6" aria-describedby="glycan-custom-hint">
+        <p id="glycan-custom-hint" class="field-hint">Added on top of the selected modification. A sign applies until the next sign: -H2O removes water.</p>
       </div>
     </div>
     <label for="glycan-sodium" style="display:flex;gap:.5rem;align-items:center;text-transform:none;letter-spacing:0">

@@ -9,6 +9,17 @@ only; the reference checkout was not executed or merged.
 - The 2020 deamidation correction (H −1, N −1, O +1) is already in
   `core/constants.py`. Older Stable/Dev use the opposite sign.
 - The subsequent 2-AA correction (`88bc42e`, C7 H7 N1 O1) is already present.
+- Procainamide (`Label_ProA`) is new in the rewrite, so legacy fixtures cannot
+  cover it. Reductive amination adds C13H21N3O, loses H2O and gains H2, giving a
+  C13H21N3 increment (+219.1735 Da; Waters app note 720004212). Tests pin FA2
+  and FA2G1 values derived from that composition and cross-check the Ludger
+  FA2G1-ProA [M+2H]2+ value (m/z 922.8).
+- Free glycans accept a custom elemental delta over C, H, N, O and S, added
+  after the selected modification. A sign applies until the next sign (`-H2O`
+  removes water; `-C2-H6` equals `-C2H6`); omitted counts mean 1. The isotope
+  profile uses the complete resulting composition, which must not contain
+  negative counts or be empty. Permalink slugs omit an empty custom delta, so
+  earlier links are unchanged.
 - Carbamidomethylation, disulfide subtraction, glycan derivatization tables,
   charge handling, isotope counts and resolution settings are represented in
   the rewrite. The retained legacy also repairs NumPy multiplication of modifier
