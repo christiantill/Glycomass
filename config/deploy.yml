@@ -3,16 +3,29 @@ service: glycomass
 image: <%= ENV.fetch("GLYCOMASS_IMAGE") %>
 minimum_version: 2.12.0
 
+# Memory caps: the host (8 GB RAM, 2 GB swap) also runs other services, so a
+# runaway job must hit its own container's limit instead of starving the host. Each
+# cap allows a little swap (memory-swap - memory) so idle pages can move out before
+# the kernel kills anything. Measurements behind these numbers: deploy/README.md.
 servers:
   web:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
+    options:
+      memory: 1536m       # uploads stream to disk; calculations need tens of MB
+      memory-swap: 2g
   worker:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     cmd: worker
     proxy: false
     stop_timeout: 330
+    options:
+      # One job at a time (max_jobs = 1). The identifier child holds the whole MGF:
+      # about 0.9 GB for a realistic 250 MB upload. A larger child is OOM-killed and
+      # its job is marked failed; the arq parent keeps running.
+      memory: 2g
+      memory-swap: 2560m
 
 proxy:
   ssl: true
@@ -57,8 +70,13 @@ volumes:
   - /var/lib/glycomass/files:/data
 
 accessories:
+  # Accessory options apply only when the accessory container is recreated
+  # (`kamal accessory reboot <name>`); `kamal deploy` leaves running accessories as they are.
   postgres:
     image: postgres:17-alpine
+    options:
+      memory: 1g
+      memory-swap: 1280m
     host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     env:
       clear:
@@ -70,6 +88,10 @@ accessories:
       - /var/lib/glycomass/postgres:/var/lib/postgresql/data
   redis:
     image: redis:7-alpine
+    options:
+      # Job queue only (arq), not a cache: no eviction policy, queued jobs must not be dropped.
+      memory: 256m
+      memory-swap: 320m
     host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     cmd: redis-server --appendonly yes
     directories:
