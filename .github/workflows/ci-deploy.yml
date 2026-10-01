@@ -60,7 +60,7 @@ jobs:
       packages: write
     env:
       GLYCOMASS_IMAGE: christiantill/glycomass-app
-      GLYCOMASS_DEPLOY_HOST: 62.83.18.172
+      GLYCOMASS_DEPLOY_HOST: ${{ vars.GLYCOMASS_DEPLOY_HOST }}
       GLYCOMASS_DEPLOY_DOMAIN: glycomass.com,www.glycomass.com
       KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
     steps:

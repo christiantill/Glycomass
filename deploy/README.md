@@ -1,6 +1,6 @@
-# VPS deployment (netcup)
+# VPS deployment
 
-The maintainer provisioned a netcup x86-64 server with 8 GB RAM and approximately
+The maintainer provisioned an x86-64 VPS with 8 GB RAM and approximately
 250 GB disk, running Debian 13 minimal. The live site now uses `glycomass.com` and `www.glycomass.com`;
 There is no hosted staging environment; use the isolated local stack for testing.
 The former Heroku app has been deleted. The deployment can also run on other
@@ -151,7 +151,7 @@ Namecheap manages the live domain. The current web records are:
 
 | Type | Host | Value |
 | --- | --- | --- |
-| A | @ | 62.83.18.172 |
+| A | @ | the server's public IPv4 address |
 | CNAME | www | glycomass.com |
 
 Kamal manages HTTPS certificates for both hostnames. Preserve Zoho MX and
