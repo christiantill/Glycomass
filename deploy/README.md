@@ -93,6 +93,45 @@ Kamal application rollback changes the image; it does not undo migrations or
 restore lost data. Keep migrations compatible with the previous image. Do not
 delete accessory storage during application rollback.
 
+## Memory limits
+
+The server (8 GB RAM, 2 GB swap) also runs other services with their own limits.
+`config/deploy.yml` caps Glycomass too, so a runaway job fails inside its
+own container instead of starving the host:
+
+| Container | Memory | + swap | Basis |
+| --- | --- | --- | --- |
+| web | 1536m | 512m | 112 MiB in production; uploads stream to disk; a 100,000-residue super-high protein calculation peaks at 54 MiB |
+| worker | 2g | 512m | 65 MiB idle; one job at a time; identifier child peaks at 0.9 GB for a 250 MB MGF with 400-peak spectra |
+| postgres | 1g | 256m | 46 MiB in production; default `shared_buffers` (128 MB) |
+| redis | 256m | 64m | 9 MiB in production; arq queue only, so no eviction policy |
+
+Measurements: production `docker stats` and local runs on 2026-10-01. The worst
+upload measured, 250 MB of one million 11-peak spectra, fit under the worker
+cap (2 GiB resident plus 282 MiB swap) but took 6 minutes, so in production it
+fails on arq's 5-minute job timeout instead. When the
+identifier child exceeds the cap, the kernel kills the child, not the arq parent,
+and the job is marked failed.
+
+Role caps apply on the next deploy. Accessory options apply only when the
+accessory container is recreated; `kamal deploy` does not touch running
+accessories. With the deployment environment set (see Kamal setup above), and
+while no identifier job is running:
+
+```sh
+kamal accessory reboot redis     # queue is restored from its append-only file
+kamal accessory reboot postgres  # web requests fail for a few seconds
+kamal app boot                   # replaces web and worker containers: fresh DB pools
+```
+
+The app boot is required after a Postgres reboot: the connection pools do not
+check connections before reuse, so a stale connection would fail the next job
+before it can record its status. For an already running version, Kamal renames
+the current containers, starts new ones, then stops the old ones.
+
+Then check the limits with `docker stats --no-stream` on the server, the health
+endpoint, and `kamal app logs -r worker` for a reconnected worker.
+
 ## Slow-operation logs
 
 See [performance timings](../docs/performance.md) for
