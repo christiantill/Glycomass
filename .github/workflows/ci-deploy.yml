@@ -115,8 +115,7 @@ jobs:
       - name: Remove temporary credentials
         if: always()
         run: |
-          if [ -f ~/.ssh/id_ed25519 ]; then
-            ssh -o ConnectTimeout=10 root@"$GLYCOMASS_DEPLOY_HOST" 'docker logout ghcr.io' || true
-          fi
+          # The server's registry login is left alone: other deploys on the same host may
+          # rely on it. Only the runner's own login and keys are removed.
           docker logout ghcr.io || true
           rm -f ~/.ssh/id_ed25519 .kamal/secrets
