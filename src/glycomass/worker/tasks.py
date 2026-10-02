@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import signal
 import sys
 from pathlib import Path
 
@@ -87,6 +88,13 @@ async def process_mgf(upload_path: str, result_path: str) -> dict[str, object]:
             # Child timings use stderr; stdout remains the JSON result protocol.
             sys.stderr.write(stderr.decode(errors="replace"))
         if process.returncode:
+            with contextlib.suppress(OSError):
+                Path(result_path).unlink(missing_ok=True)  # drop a partial result
+            if process.returncode == -signal.SIGKILL:
+                # The container's memory limit is the usual reason for SIGKILL.
+                raise RuntimeError(
+                    "Processing ran out of memory. The file may contain an unusually large spectrum."
+                )
             raise RuntimeError(stderr.decode(errors="replace")[-2000:])
         summary: dict[str, object] = json.loads(stdout)
         return summary
@@ -95,6 +103,8 @@ async def process_mgf(upload_path: str, result_path: str) -> dict[str, object]:
             with contextlib.suppress(ProcessLookupError):
                 process.kill()
             await process.wait()
+            with contextlib.suppress(OSError):
+                Path(result_path).unlink(missing_ok=True)
 
 
 async def identifier_task(ctx: dict[str, object], job_id: str) -> None:  # arq entrypoint

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -110,32 +111,41 @@ def filter_spectrum(
 
 def process_mgf(in_path: str, out_path: str) -> dict[str, int | str]:
     """Read MGF, keep glycopeptide spectra, derive the deglycosylated peptide mass, strip
-    glycan/oxonium peaks, rewrite each precursor to (peptide_mass, charge 1), write MGF."""
-    with measure("identifier.read") as timing:
-        spectra = read_mgf(in_path)
-        timing["spectra"] = len(spectra)
-        timing["total_peaks"] = sum(len(s.mz) for s in spectra)
-        timing["max_spectrum_peaks"] = max((len(s.mz) for s in spectra), default=0)
-    total = len(spectra)
-    with measure("identifier.select", spectra=total):
-        glyco = [s for s in spectra if is_glycopeptide(s.mz)]
-    cleaned: list[dict[str, object]] = []
-    identified = 0
-    with measure("identifier.match_and_filter", spectra=len(glyco),
-                 total_peaks=sum(len(s.mz) for s in glyco)):
-        for s in glyco:
-            frag = find_pep_hexnac_mz(s.mz, s.intensity)
-            if frag is None:
-                continue
-            identified += 1
-            pep_mass = peptide_mass_from_fragment(frag)
-            fmz, finten = filter_spectrum(s.mz, s.intensity, peptide_mass=pep_mass)
-            new_params: dict[str, object] = {
-                k: v for k, v in s.params.items() if k not in ("com", "username")
-            }
-            new_params["pepmass"] = (pep_mass, 1)
-            new_params["charge"] = "1+"
-            cleaned.append({"m/z array": fmz, "intensity array": finten, "params": new_params})
-    with measure("identifier.write", spectra=identified):
-        mgf.write(cleaned, output=out_path)
-    return {"total": total, "glycopeptides": len(glyco), "identified": identified, "output": out_path}
+    glycan/oxonium peaks, rewrite each precursor to (peptide_mass, charge 1), write MGF.
+
+    Streams one spectrum at a time, so memory does not grow with the upload size."""
+    counts = {"spectra": 0, "total_peaks": 0, "max_spectrum_peaks": 0,
+              "glycopeptides": 0, "identified": 0}
+
+    def cleaned() -> Iterator[dict[str, object]]:
+        # Sequential parser: the indexed reader keeps an offset entry per spectrum.
+        with mgf.read(in_path, use_index=False) as reader:
+            for s in reader:
+                mz = np.asarray(s["m/z array"], dtype=float)
+                intensity = np.asarray(s["intensity array"], dtype=float)
+                counts["spectra"] += 1
+                counts["total_peaks"] += mz.size
+                counts["max_spectrum_peaks"] = max(counts["max_spectrum_peaks"], mz.size)
+                if not is_glycopeptide(mz):
+                    continue
+                counts["glycopeptides"] += 1
+                frag = find_pep_hexnac_mz(mz, intensity)
+                if frag is None:
+                    continue
+                counts["identified"] += 1
+                pep_mass = peptide_mass_from_fragment(frag)
+                fmz, finten = filter_spectrum(mz, intensity, peptide_mass=pep_mass)
+                new_params: dict[str, object] = {
+                    k: v for k, v in s["params"].items() if k not in ("com", "username")
+                }
+                new_params["pepmass"] = (pep_mass, 1)
+                new_params["charge"] = "1+"
+                yield {"m/z array": fmz, "intensity array": finten, "params": new_params}
+
+    with measure("identifier.process") as timing:
+        try:
+            mgf.write(cleaned(), output=out_path)
+        finally:
+            timing.update(counts)
+    return {"total": counts["spectra"], "glycopeptides": counts["glycopeptides"],
+            "identified": counts["identified"], "output": out_path}
