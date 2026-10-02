@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     upload_dir: Path = Path("data/uploads")
     result_dir: Path = Path("data/results")
     max_upload_bytes: int = 250 * 1024 * 1024
+    # Off in production while the identifier is being developed: no new uploads are
+    # accepted, but existing job status pages and result downloads keep working.
+    identifier_enabled: bool = True
 
 
 @lru_cache

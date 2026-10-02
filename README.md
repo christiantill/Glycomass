@@ -18,7 +18,9 @@ glycoproteins, and identify glycopeptide spectra in MGF files.
 View monoisotopic and most-abundant m/z, explore the isotope profile or individual
 peaks, and copy or download the peak table. Saved calculation links let you share
 your inputs. The [glycopeptide identifier](https://glycomass.com/identifier)
-processes uploaded MGF files and provides a downloadable result.
+processes uploaded MGF files and provides a downloadable result. It is
+temporarily disabled on glycomass.com while it is being developed; results of
+earlier jobs remain available.
 
 ## Research use
 

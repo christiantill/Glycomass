@@ -17,6 +17,7 @@ from glycomass.db.models import IdentifierJob
 from glycomass.db.session import get_sessionmaker
 from glycomass.logging_config import get_logger
 from glycomass.web.pages import templates
+from glycomass.web.upload_limit import IDENTIFIER_UNAVAILABLE
 
 router = APIRouter()
 
@@ -74,6 +75,10 @@ def _recognizable_mgf(src: BinaryIO) -> bool:
 
 @router.get("/identifier", response_class=HTMLResponse)
 def identifier_page(request: Request) -> HTMLResponse:
+    if not get_settings().identifier_enabled:
+        return templates.TemplateResponse(
+            request, "identifier.html", {"unavailable": IDENTIFIER_UNAVAILABLE}, status_code=503,
+        )
     return templates.TemplateResponse(request, "identifier.html")
 
 

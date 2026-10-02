@@ -7,28 +7,35 @@ minimum_version: 2.12.0
 # services, so Glycomass keeps to a small share and a runaway job hits its own
 # container's limit instead of starving the host. Each cap allows a quarter extra as
 # swap (memory-swap - memory) so idle pages can move out before the kernel kills
-# anything. Measurements behind these numbers: deploy/README.md.
+# anything. CPU caps are ceilings, not reservations: idle containers use none.
+# Measurements behind these numbers: deploy/README.md.
 servers:
   web:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     options:
-      memory: 512m        # uploads stream to disk; calculations need tens of MB
+      # The mass calculators run here. NumPy releases the GIL, so concurrent
+      # calculations use more than one core; 2 CPUs keep the heaviest request as
+      # fast as uncapped for one user. 8 concurrent ones peaked at 160 MiB.
+      memory: 512m
       memory-swap: 640m
-      cpus: 0.5
+      cpus: 2.0
   worker:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     cmd: worker
     proxy: false
     stop_timeout: 330
+    # The worker only runs identifier jobs. While GLYCOMASS_IDENTIFIER_ENABLED is
+    # false it receives no new jobs, so it idles (about 60 MiB, no CPU) and only
+    # finishes jobs queued before the switch: one CPU lets even a 250 MB job finish
+    # within the 5-minute job timeout. It stays deployed so that re-enabling needs no
+    # role changes. When the identifier is enabled again, raise these caps first:
+    # it is still being developed and will need more, e.g. memory 2g,
+    # memory-swap 2560m, cpus 1.5, then re-measure (deploy/README.md).
     options:
-      # One job at a time (max_jobs = 1). The identifier child streams the MGF one
-      # spectrum at a time: at most about 150 MB for a 250 MB upload. A child over the
-      # cap is OOM-killed and its job fails with an out-of-memory message; the arq
-      # parent keeps running. The child is single-threaded, so one CPU is enough.
-      memory: 1g
-      memory-swap: 1280m
+      memory: 384m
+      memory-swap: 480m
       cpus: 1.0
 
 proxy:
@@ -65,6 +72,9 @@ env:
     GLYCOMASS_REDIS_URL: redis://glycomass-redis:6379/0
     GLYCOMASS_UPLOAD_DIR: /data/uploads
     GLYCOMASS_RESULT_DIR: /data/results
+    # Temporarily off while the identifier is being developed: new uploads are
+    # refused; earlier results stay downloadable. See the worker caps above.
+    GLYCOMASS_IDENTIFIER_ENABLED: false
   secret:
     - GLYCOMASS_DATABASE_URL
 

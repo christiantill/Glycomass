@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
 
+from glycomass.config import get_settings
 from glycomass.core.errors import GlycomassError
 from glycomass.core.results import Spectrum
 from glycomass.db.models import Permalink
@@ -26,6 +27,7 @@ def display_profile(spectrum: Spectrum) -> dict[str, list[float]]:
 
 
 templates.env.filters["display_profile"] = display_profile
+templates.env.globals["identifier_enabled"] = lambda: get_settings().identifier_enabled
 router = APIRouter()
 logger = get_logger(__name__)
 

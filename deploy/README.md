@@ -93,44 +93,83 @@ Kamal application rollback changes the image; it does not undo migrations or
 restore lost data. Keep migrations compatible with the previous image. Do not
 delete accessory storage during application rollback.
 
+## Identifier switch
+
+The glycopeptide identifier is temporarily disabled in production while it is
+being developed: `GLYCOMASS_IDENTIFIER_ENABLED: false` in `config/deploy.yml`.
+The navigation hides it, `/identifier` shows a notice, and uploads get a 503
+before their body is read, so no new jobs are queued. Status pages and result
+downloads of earlier jobs keep working, and the worker still finishes jobs queued
+before the switch. The calculators are unaffected.
+
+To enable it again, set the variable to `true`, raise the worker caps as the
+comment in `config/deploy.yml` describes, deploy, and re-measure the worker as
+below with the largest uploads the identifier then accepts.
+
 ## Memory and CPU limits
 
 The server (4 vCPU, 8 GB RAM, 2 GB swap) also runs other services with their own
-limits. Glycomass is a small hobby service, so `config/deploy.yml` keeps it to a
-small share of the host, and a runaway job fails inside its own container instead
-of starving the host:
+limits. Glycomass is a small hobby service whose mass calculators carry the
+traffic, so `config/deploy.yml` keeps it to a small share of the host and a
+runaway request or job fails inside its own container instead of starving the
+host. CPU caps are ceilings, not reservations: an idle container uses no CPU.
 
 | Container | Memory | + swap | CPUs | Basis |
 | --- | --- | --- | --- | --- |
-| web | 512m | 128m | 0.5 | 108 MiB in production; uploads stream to disk: a 250 MB upload took 6 s and peaked at 100 MiB of process memory (the kernel reclaims the upload's page cache at the cap); a 100,000-residue super-high protein calculation peaks at 54 MiB |
-| worker | 1g | 256m | 1.0 | 61 MiB idle in production; one job at a time; the single-threaded identifier child stays near 150 MiB for 250 MB uploads of ordinary spectra |
+| web | 512m | 128m | 2.0 | 108 MiB in production; 160 MiB with 8 concurrent heaviest calculations; a 250 MB upload peaked at 100 MiB of process memory |
+| worker | 384m | 96m | 1.0 | identifier only, disabled: 61 MiB idle in production; finishing a queued 250 MB job peaked at 140 MiB |
 | postgres | 512m | 128m | 0.5 | 106 MiB in production; default `shared_buffers` (128 MB) |
 | redis | 128m | 32m | 0.25 | 9 MiB in production; arq queue only, so no eviction policy |
 
 Swap is a quarter of each memory cap. Production figures are `docker stats` on
 2026-10-02; the rest are local runs of the production image on 2026-10-02 with
-these limits applied.
+these limits applied (`docker stats` and the containers' cgroup memory files).
 
-The identifier reads, filters and writes one spectrum at a time, so its memory no
-longer grows with the file. Peak RSS of the identifier child for 250 MB synthetic
-uploads in which every spectrum is selected and written:
+### Calculators (web)
+
+The calculators run in the web container; the worker does not touch them. The
+slowest working request is a protein of about 1,000 residues at super-high
+resolution and charge 1 (about 0.4 s). The calculation releases the GIL in NumPy,
+so concurrent requests use more than one core. Local benchmark, five such form
+submissions per concurrent user:
+
+| Web CPUs | 1 user p50 | 4 users p50 | 8 users p50 |
+| --- | --- | --- | --- |
+| uncapped (12 cores) | 381 ms | 594 ms | 1,643 ms |
+| 2.0 | 429 ms | 945 ms | 2,110 ms |
+| 1.0 | 364 ms | 1,783 ms | 4,477 ms |
+| 0.5 | 910 ms | 3,699 ms | 8,613 ms |
+
+Two CPUs keep a single user at uncapped speed and bursts of a few users near it.
+Memory stayed below 170 MiB at 8 concurrent users, with no reclaim at the cap.
+
+### Identifier (worker)
+
+The identifier reads, filters and writes one spectrum at a time, so its memory
+does not grow with the file. Peak RSS of the identifier child for 250 MB
+synthetic uploads in which every spectrum is selected and written:
 
 | Upload | Before (whole file in memory) | Streaming |
 | --- | --- | --- |
 | 37,000 spectra of 400 peaks | 868 MiB | 153 MiB |
 | 940,000 spectra of 11 peaks | 3.1 GiB | 68 MiB |
 
-The 250 MB upload limit therefore stays. Memory now depends on the largest single
-spectrum instead: about 11 times its text size (a 50 MB spectrum of 2.5 million
-peaks peaked at 568 MiB). A spectrum above roughly 80 MB exceeds the worker cap;
-real MS/MS spectra are far below that.
+Memory now depends on the largest single spectrum: about 11 times its text size
+(a 50 MB spectrum of 2.5 million peaks peaked at 568 MiB). Real MS/MS spectra are
+far smaller. At one CPU a 250 MB file of 400-peak spectra took under 3 minutes
+in the container; a file of about a million tiny spectra takes over 5 minutes and
+fails on arq's 5-minute job timeout ("Processing was cancelled or timed out").
 
 Failures stay inside the job. The identifier child sets its OOM score so the
 kernel kills the child, not the arq parent: a 250 MB single-spectrum upload
 failed with "Processing ran out of memory" and the worker then processed the
-next job. A file of about a million tiny spectra takes over 5 minutes on one CPU
-and fails on arq's 5-minute job timeout ("Processing was cancelled or timed
-out"). Either way the partial result is removed, and failed jobs are not retried.
+next job. The partial result is removed, and failed jobs are not retried.
+
+To re-measure the worker, build the image, run the smoke stack from "Local
+container verification" with the caps from `config/deploy.yml` (Compose
+`mem_limit`, `memswap_limit`, `cpus`) and a published web port, upload the
+largest expected files, and sample `docker stats` and the worker's
+`/sys/fs/cgroup/memory.peak` and `memory.events` (`oom_kill`).
 
 Role caps apply on the next deploy. Accessory options apply only when the
 accessory container is recreated; `kamal deploy` does not touch running

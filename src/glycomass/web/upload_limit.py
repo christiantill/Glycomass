@@ -5,6 +5,11 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from glycomass.config import get_settings
 
+IDENTIFIER_UNAVAILABLE = (
+    "The identifier is temporarily unavailable while it is being developed. "
+    "The mass calculators are not affected."
+)
+
 
 class UploadLimitMiddleware:
     """Enforce the limit while receiving, including bodies without Content-Length."""
@@ -21,6 +26,13 @@ class UploadLimitMiddleware:
         }
         if scope["type"] != "http" or scope["method"] != "POST" or not (is_upload or is_calculator):
             await self.app(scope, receive, send)
+            return
+
+        if is_upload and not get_settings().identifier_enabled:
+            # Refuse before receiving the body, so a disabled upload costs nothing.
+            await HTMLResponse(
+                f'<div class="error-note">{IDENTIFIER_UNAVAILABLE}</div>', status_code=503,
+            )(scope, receive, send)
             return
 
         message = "File exceeds the maximum upload size." if is_upload else "Calculation request is too large."
