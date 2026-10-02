@@ -148,6 +148,30 @@ async def test_processing_leaves_event_loop_responsive_and_reaps_cancelled_child
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(("code", "message"), [
+    ("import os, signal; os.kill(os.getpid(), signal.SIGKILL)", "ran out of memory"),
+    ("raise SystemExit('bad input')", "bad input"),
+])
+async def test_failed_child_removes_partial_result(tmp_path, monkeypatch, code, message):
+    import asyncio
+    import sys
+
+    from glycomass.worker.tasks import process_mgf
+
+    original = asyncio.create_subprocess_exec
+    result = tmp_path / "out.mgf"
+
+    async def failing_child(*args, **kwargs):
+        result.write_text("BEGIN IONS\n")  # partial output written before the failure
+        return await original(sys.executable, "-c", code, **kwargs)
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", failing_child)
+    with pytest.raises(RuntimeError, match=message):
+        await process_mgf("unused", str(result))
+    assert not result.exists()
+
+
+@pytest.mark.asyncio
 async def test_cancelled_job_reaches_terminal_state_and_retains_upload(tmp_path, monkeypatch):
     import asyncio
 

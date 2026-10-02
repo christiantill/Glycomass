@@ -3,17 +3,19 @@ service: glycomass
 image: <%= ENV.fetch("GLYCOMASS_IMAGE") %>
 minimum_version: 2.12.0
 
-# Memory caps: the host (8 GB RAM, 2 GB swap) also runs other services, so a
-# runaway job must hit its own container's limit instead of starving the host. Each
-# cap allows a little swap (memory-swap - memory) so idle pages can move out before
-# the kernel kills anything. Measurements behind these numbers: deploy/README.md.
+# Memory and CPU caps: the host (4 vCPU, 8 GB RAM, 2 GB swap) also runs other
+# services, so Glycomass keeps to a small share and a runaway job hits its own
+# container's limit instead of starving the host. Each cap allows a quarter extra as
+# swap (memory-swap - memory) so idle pages can move out before the kernel kills
+# anything. Measurements behind these numbers: deploy/README.md.
 servers:
   web:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     options:
-      memory: 1536m       # uploads stream to disk; calculations need tens of MB
-      memory-swap: 2g
+      memory: 512m        # uploads stream to disk; calculations need tens of MB
+      memory-swap: 640m
+      cpus: 0.5
   worker:
     hosts:
       - <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
@@ -21,11 +23,13 @@ servers:
     proxy: false
     stop_timeout: 330
     options:
-      # One job at a time (max_jobs = 1). The identifier child holds the whole MGF:
-      # about 0.9 GB for a realistic 250 MB upload. A larger child is OOM-killed and
-      # its job is marked failed; the arq parent keeps running.
-      memory: 2g
-      memory-swap: 2560m
+      # One job at a time (max_jobs = 1). The identifier child streams the MGF one
+      # spectrum at a time: at most about 150 MB for a 250 MB upload. A child over the
+      # cap is OOM-killed and its job fails with an out-of-memory message; the arq
+      # parent keeps running. The child is single-threaded, so one CPU is enough.
+      memory: 1g
+      memory-swap: 1280m
+      cpus: 1.0
 
 proxy:
   ssl: true
@@ -75,8 +79,10 @@ accessories:
   postgres:
     image: postgres:17-alpine
     options:
-      memory: 1g
-      memory-swap: 1280m
+      # Default settings (shared_buffers 128 MB) fit well inside this cap.
+      memory: 512m
+      memory-swap: 640m
+      cpus: 0.5
     host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     env:
       clear:
@@ -90,8 +96,9 @@ accessories:
     image: redis:7-alpine
     options:
       # Job queue only (arq), not a cache: no eviction policy, queued jobs must not be dropped.
-      memory: 256m
-      memory-swap: 320m
+      memory: 128m
+      memory-swap: 160m
+      cpus: 0.25
     host: <%= ENV.fetch("GLYCOMASS_DEPLOY_HOST") %>
     cmd: redis-server --appendonly yes
     directories:

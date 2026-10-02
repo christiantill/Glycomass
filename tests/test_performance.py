@@ -49,9 +49,9 @@ def test_child_timing_logs_do_not_corrupt_json_result(tmp_path):
     })
     assert json.loads(result.stdout)["identified"] == 1
     events = [json.loads(line) for line in result.stderr.splitlines()]
-    assert {event["operation"] for event in events} == {
-        "identifier.read", "identifier.select", "identifier.match_and_filter", "identifier.write",
-    }
+    assert [event["operation"] for event in events] == ["identifier.process"]
+    assert events[0]["spectra"] == 2 and events[0]["glycopeptides"] == 1
+    assert events[0]["identified"] == 1
     assert all(event["level"] == "warning" for event in events)
     assert all("sample.mgf" not in str(event) for event in events)
 
@@ -65,5 +65,5 @@ async def test_parent_forwards_child_timings_and_still_returns_summary(tmp_path,
     result = await process_mgf("tests/identifier/sample.mgf", str(tmp_path / "out.mgf"))
     assert result["identified"] == 1
     events = [json.loads(line) for line in capsys.readouterr().err.splitlines()]
-    assert len(events) == 4
-    assert events[0]["operation"] == "identifier.read"
+    assert len(events) == 1
+    assert events[0]["operation"] == "identifier.process"

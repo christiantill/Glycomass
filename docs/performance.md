@@ -16,10 +16,7 @@ scheduling/I/O waits; they are not CPU-time measurements or memory measurements.
 | --- | --- | --- |
 | `isotopes.variants` | requested peaks | Isotope distribution generation |
 | `isotopes.gaussian` | peaks, sigma, grid points, peak-grid evaluations | O(P × G) time and O(P + G) memory for P isotope peaks and G grid points |
-| `identifier.read` | spectra, total peaks, largest spectrum | Whole-file parsing; O(T) retained peak data for T peaks |
-| `identifier.select` | spectra | Oxonium selection over all peaks |
-| `identifier.match_and_filter` | selected spectra and total peaks | O(N log N) time and O(N) memory per spectrum; no quadratic pair matrix |
-| `identifier.write` | identified spectra | Result serialization and disk I/O |
+| `identifier.process` | spectra, total peaks, largest spectrum, glycopeptides, identified | Streams one spectrum at a time through parsing, oxonium selection, O(N log N) matching (no quadratic pair matrix) and writing; memory is O(N) for the largest spectrum, not the file |
 | `identifier.job` | job ID | Child startup plus complete MGF computation; excludes DB commits |
 
 Both web and worker startup configure logging. Child-process timings use stderr,
@@ -43,10 +40,10 @@ These samples do not show second-long execution, but they do not exercise large
 real uploads or concurrent web calculations. Higher-resolution Gaussian grids
 remain the main nested numerical loop. Narrow-window evaluation/caching could
 reduce its cost, but must preserve the existing most-abundant-m/z grid behavior
-and pass numerical parity checks. MGF parsing and output construction still retain
-the whole file and selected results; streaming is the next memory improvement to
-investigate with representative large datasets. Timing logs alone cannot detect
-high memory consumption.
+and pass numerical parity checks. The identifier streams MGF files, so memory
+follows the largest spectrum rather than the file size; see the deployment guide's
+memory limits for measurements. Timing logs alone cannot detect high memory
+consumption.
 
 Staging observation after deployment: a tiny synthetic identifier job emitted
 `identifier.job` at **1306.116 ms**. A separate diagnostic of the same synthetic

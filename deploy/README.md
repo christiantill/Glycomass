@@ -93,25 +93,44 @@ Kamal application rollback changes the image; it does not undo migrations or
 restore lost data. Keep migrations compatible with the previous image. Do not
 delete accessory storage during application rollback.
 
-## Memory limits
+## Memory and CPU limits
 
-The server (8 GB RAM, 2 GB swap) also runs other services with their own limits.
-`config/deploy.yml` caps Glycomass too, so a runaway job fails inside its
-own container instead of starving the host:
+The server (4 vCPU, 8 GB RAM, 2 GB swap) also runs other services with their own
+limits. Glycomass is a small hobby service, so `config/deploy.yml` keeps it to a
+small share of the host, and a runaway job fails inside its own container instead
+of starving the host:
 
-| Container | Memory | + swap | Basis |
-| --- | --- | --- | --- |
-| web | 1536m | 512m | 112 MiB in production; uploads stream to disk; a 100,000-residue super-high protein calculation peaks at 54 MiB |
-| worker | 2g | 512m | 65 MiB idle; one job at a time; identifier child peaks at 0.9 GB for a 250 MB MGF with 400-peak spectra |
-| postgres | 1g | 256m | 46 MiB in production; default `shared_buffers` (128 MB) |
-| redis | 256m | 64m | 9 MiB in production; arq queue only, so no eviction policy |
+| Container | Memory | + swap | CPUs | Basis |
+| --- | --- | --- | --- | --- |
+| web | 512m | 128m | 0.5 | 108 MiB in production; uploads stream to disk: a 250 MB upload took 6 s and peaked at 100 MiB of process memory (the kernel reclaims the upload's page cache at the cap); a 100,000-residue super-high protein calculation peaks at 54 MiB |
+| worker | 1g | 256m | 1.0 | 61 MiB idle in production; one job at a time; the single-threaded identifier child stays near 150 MiB for 250 MB uploads of ordinary spectra |
+| postgres | 512m | 128m | 0.5 | 106 MiB in production; default `shared_buffers` (128 MB) |
+| redis | 128m | 32m | 0.25 | 9 MiB in production; arq queue only, so no eviction policy |
 
-Measurements: production `docker stats` and local runs on 2026-10-01. The worst
-upload measured, 250 MB of one million 11-peak spectra, fit under the worker
-cap (2 GiB resident plus 282 MiB swap) but took 6 minutes, so in production it
-fails on arq's 5-minute job timeout instead. When the
-identifier child exceeds the cap, the kernel kills the child, not the arq parent,
-and the job is marked failed.
+Swap is a quarter of each memory cap. Production figures are `docker stats` on
+2026-10-02; the rest are local runs of the production image on 2026-10-02 with
+these limits applied.
+
+The identifier reads, filters and writes one spectrum at a time, so its memory no
+longer grows with the file. Peak RSS of the identifier child for 250 MB synthetic
+uploads in which every spectrum is selected and written:
+
+| Upload | Before (whole file in memory) | Streaming |
+| --- | --- | --- |
+| 37,000 spectra of 400 peaks | 868 MiB | 153 MiB |
+| 940,000 spectra of 11 peaks | 3.1 GiB | 68 MiB |
+
+The 250 MB upload limit therefore stays. Memory now depends on the largest single
+spectrum instead: about 11 times its text size (a 50 MB spectrum of 2.5 million
+peaks peaked at 568 MiB). A spectrum above roughly 80 MB exceeds the worker cap;
+real MS/MS spectra are far below that.
+
+Failures stay inside the job. The identifier child sets its OOM score so the
+kernel kills the child, not the arq parent: a 250 MB single-spectrum upload
+failed with "Processing ran out of memory" and the worker then processed the
+next job. A file of about a million tiny spectra takes over 5 minutes on one CPU
+and fails on arq's 5-minute job timeout ("Processing was cancelled or timed
+out"). Either way the partial result is removed, and failed jobs are not retried.
 
 Role caps apply on the next deploy. Accessory options apply only when the
 accessory container is recreated; `kamal deploy` does not touch running
