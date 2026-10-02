@@ -3,6 +3,9 @@
 {% block content %}
 <span class="eyebrow">Identifier</span>
 <h1 style="font-family:var(--font-display);font-weight:400;font-size:var(--step-3);color:var(--paper);margin:.6rem 0 1.6rem">Glycopeptide identifier</h1>
+{% if unavailable %}
+<div class="error-note">{{ unavailable }}</div>
+{% else %}
 <div class="calc-shell">
   <form class="calc-form" hx-post="/identifier" hx-target="#result" hx-swap="innerHTML" hx-encoding="multipart/form-data">
     <div><label for="identifier-mgf_file">MGF file</label><input id="identifier-mgf_file" type="file" name="mgf_file" accept=".mgf" required></div>
@@ -10,4 +13,5 @@
   </form>
   <div id="result" class="result-panel"><p style="color:var(--muted)">Upload an MGF to classify glycopeptide spectra and rewrite precursors.</p></div>
 </div>
+{% endif %}
 {% endblock %}

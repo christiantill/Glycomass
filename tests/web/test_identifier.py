@@ -249,3 +249,86 @@ async def test_concurrent_first_uploads_share_one_pool(monkeypatch):
     pools = await asyncio.gather(*(idmod._get_arq_pool(request) for _ in range(10)))
     assert all(result is pool for result in pools)
     assert calls == 1
+
+
+def _set_identifier_enabled(monkeypatch, enabled: bool) -> None:
+    from glycomass.config import get_settings
+
+    monkeypatch.setenv("GLYCOMASS_IDENTIFIER_ENABLED", "true" if enabled else "false")
+    get_settings.cache_clear()
+
+
+def test_enabled_identifier_is_linked_from_navigation(client, monkeypatch):
+    _set_identifier_enabled(monkeypatch, True)
+    r = client.get("/")
+    assert r.status_code == 200
+    assert 'href="/identifier"' in r.text
+
+
+def test_disabled_identifier_hides_navigation_and_form(client, monkeypatch):
+    _set_identifier_enabled(monkeypatch, False)
+    assert 'href="/identifier"' not in client.get("/").text
+    r = client.get("/identifier")
+    assert r.status_code == 503
+    assert "temporarily unavailable" in r.text
+    assert 'hx-post="/identifier"' not in r.text
+
+
+def test_disabled_identifier_refuses_upload_without_queueing(client, monkeypatch, tmp_path):
+    _set_identifier_enabled(monkeypatch, False)
+
+    async def no_pool(_redis_settings):
+        raise AssertionError("a disabled identifier must not queue jobs")
+
+    monkeypatch.setattr(idmod, "create_pool", no_pool)
+    r = client.post(
+        "/identifier", files={"mgf_file": ("sample.mgf", _SAMPLE.read_bytes(), "text/plain")}
+    )
+    assert r.status_code == 503
+    assert "temporarily unavailable" in r.text
+    assert not list((tmp_path / "up").glob("*.mgf"))
+
+
+def test_disabled_identifier_keeps_earlier_results_available(client, monkeypatch):
+    _set_identifier_enabled(monkeypatch, True)
+    r = client.post(
+        "/identifier", files={"mgf_file": ("sample.mgf", _SAMPLE.read_bytes(), "text/plain")}
+    )
+    jid = re.search(r"/identifier/([0-9a-f]{32})", r.text).group(1)
+
+    _set_identifier_enabled(monkeypatch, False)
+    status = client.get(f"/identifier/{jid}")
+    assert status.status_code == 200
+    assert "done" in status.text
+    download = client.get(f"/identifier/{jid}/download")
+    assert download.status_code == 200
+    assert b"BEGIN IONS" in download.content
+
+
+def test_disabled_identifier_leaves_calculators_working(client, monkeypatch):
+    _set_identifier_enabled(monkeypatch, False)
+    r = client.post("/api/v1/calculate/peptide", json={"sequence": "PEPTIDE", "charge": 1})
+    assert r.status_code == 200
+    assert abs(r.json()["mono_mz"] - 800.3672) < 1e-3
+
+
+@pytest.mark.asyncio
+async def test_disabled_identifier_refuses_upload_before_reading_body(monkeypatch):
+    _set_identifier_enabled(monkeypatch, False)
+
+    async def receive():
+        raise AssertionError("the upload body must not be read")
+
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    await create_app()({
+        "type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
+        "method": "POST", "scheme": "http", "path": "/identifier", "raw_path": b"/identifier",
+        "query_string": b"", "root_path": "", "server": ("test", 80), "client": ("test", 1),
+        "headers": [(b"content-type", b"multipart/form-data; boundary=b"),
+                    (b"content-length", b"262144000")],
+    }, receive, send)
+    assert sent[0]["status"] == 503
