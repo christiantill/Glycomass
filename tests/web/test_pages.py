@@ -140,6 +140,7 @@ def test_pages_carry_a_link_preview(client):
         assert 'content="https://glycomass.com/static/og.png?v=' in html
         assert f'property="og:title" content="{title}' in html
         assert 'name="twitter:card" content="summary_large_image"' in html
+        assert f'property="og:url" content="https://glycomass.com{path}"' in html
     image = client.get("/static/og.png")
     assert image.status_code == 200
     assert image.headers["content-type"] == "image/png"
