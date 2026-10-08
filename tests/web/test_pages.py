@@ -127,3 +127,19 @@ def test_glycan_custom_modification_result_and_error(client):
     bad = client.post("/glycan", data={"hex": 5, "hexnac": 4, "custom_modification": "Na"})
     assert bad.status_code == 200
     assert "error-note" in bad.text and "Unsupported element" in bad.text
+
+
+def test_pages_carry_a_link_preview(client):
+    pages = (
+        ("/", "GlycoMass — exact masses"),
+        ("/glycan", "Free-glycan calculator · GlycoMass"),
+    )
+    for path, title in pages:
+        html = client.get(path).text
+        assert html.count('property="og:image"') == 1
+        assert 'content="https://glycomass.com/static/og.png?v=' in html
+        assert f'property="og:title" content="{title}' in html
+        assert 'name="twitter:card" content="summary_large_image"' in html
+    image = client.get("/static/og.png")
+    assert image.status_code == 200
+    assert image.headers["content-type"] == "image/png"
